@@ -165,6 +165,7 @@ describe("vulnerability intelligence worker", () => {
       ],
     ];
     let loads = 0;
+    const adapterInventories: string[][] = [];
     const events: string[] = [];
     const worker = createVulnerabilityIntelligenceWorker({
       adapters: adapters(),
@@ -176,6 +177,13 @@ describe("vulnerability intelligence worker", () => {
           source: "paas-active-deployments",
           targets: snapshots[loads++] ?? snapshots.at(-1)!,
         }),
+      },
+      inventoryAdapters: (inventory) => {
+        adapterInventories.push(
+          inventory.map(({ asset }) => asset.version ?? "unknown"),
+        );
+
+        return adapters();
       },
       leases: leases(),
       retries: 0,
@@ -196,6 +204,10 @@ describe("vulnerability intelligence worker", () => {
     });
     await worker.runOnce();
     expect(loads).toBe(2);
+    expect(adapterInventories).toEqual([
+      ["release-1"],
+      ["release-2", "release-1"],
+    ]);
     expect(worker.metrics().inventory).toMatchObject({
       added: 1,
       changed: 1,

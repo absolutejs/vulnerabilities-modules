@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 - 2026-07-18
+
+- Allow each live inventory snapshot to rebuild inventory-aware feed adapters
+  before feed synchronization, so newly deployed components are queried in the
+  same worker cycle.
+
 ## 0.2.0 - 2026-07-18
 
 - Add a live inventory provider contract that reloads deployment inventory on

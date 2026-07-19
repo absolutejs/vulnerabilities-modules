@@ -233,6 +233,9 @@ export type VulnerabilityIntelligenceWorkerOptions = {
   history: FeedSyncRunStore;
   inventory?: readonly VulnerabilityInventoryTarget[];
   inventoryProvider?: VulnerabilityInventoryProvider;
+  inventoryAdapters?: (
+    inventory: readonly VulnerabilityInventoryTarget[],
+  ) => VulnerabilityIntelligenceAdapters;
   intervalMs?: number;
   leaseTtlMs?: number;
   leases: FeedLeaseStore;
@@ -870,20 +873,24 @@ export const createVulnerabilityIntelligenceWorker = (
 
       return activeRun;
     }
-    activeRun = Promise.all([
-      refreshFeed("epss", options.adapters.epss, options.stores.epss),
-      refreshFeed("kev", options.adapters.kev, options.stores.kev),
-      refreshFeed("osv", options.adapters.osv, options.stores.osv),
-      refreshFeed("ubuntu", options.adapters.ubuntu, options.stores.ubuntu),
-    ])
-      .then(async ([epss, kev, osv, ubuntu]) => {
+    activeRun = loadInventory()
+      .then(async (inventory) => {
+        const runAdapters =
+          inventory && options.inventoryAdapters
+            ? options.inventoryAdapters(inventory.current)
+            : options.adapters;
+        const [epss, kev, osv, ubuntu] = await Promise.all([
+          refreshFeed("epss", runAdapters.epss, options.stores.epss),
+          refreshFeed("kev", runAdapters.kev, options.stores.kev),
+          refreshFeed("osv", runAdapters.osv, options.stores.osv),
+          refreshFeed("ubuntu", runAdapters.ubuntu, options.stores.ubuntu),
+        ]);
         const feeds: Record<VulnerabilityFeedKey, FeedRefreshOutput> = {
           epss,
           kev,
           osv,
           ubuntu,
         };
-        const inventory = await loadInventory();
         if (inventory)
           await refreshInventory(
             feeds,
