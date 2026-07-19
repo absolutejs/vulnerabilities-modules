@@ -77,3 +77,9 @@ Run independent instances under different administrative and infrastructure
 boundaries. Clients should pin each genesis witness key through an independent
 channel and require a quorum with
 `verifyEvidenceWitnessQuorum` from `@absolutejs/vulnerabilities`.
+
+The repository publishes a deployable container to
+`ghcr.io/absolutejs/vulnerabilities-witness`. See
+[`deploy/README.md`](deploy/README.md) for the independence requirements,
+bootstrap sequence, PAAS quorum configuration, and repeatable Admin drill
+workflow.
