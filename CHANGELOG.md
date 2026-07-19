@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 - 2026-07-19
+
+- Persist an optional initial backup-verification record from the standalone
+  service environment into its encrypted secret adapter.
+
 ## 0.2.0 - 2026-07-19
 
 - Add an authenticated operational-status endpoint with the verified witness

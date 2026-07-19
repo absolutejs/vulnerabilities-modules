@@ -42,6 +42,15 @@ const loadOrBootstrap = async (name: string) => {
   await secrets.put(name, bootstrap);
   return bootstrap;
 };
+const loadOptionalBootstrap = async (name: string) => {
+  const stored = await secrets.fetch(name);
+  if (stored) return stored;
+  const bootstrap = process.env[name]?.trim();
+  if (!bootstrap) return null;
+  if (!secrets.put) throw new Error("Encrypted secret adapter is read-only");
+  await secrets.put(name, bootstrap);
+  return bootstrap;
+};
 
 const database = new SQL(required("DATABASE_URL"));
 await ensurePostgresEvidenceWitnessSchema(database);
@@ -58,7 +67,7 @@ const subjectsByToken = new Map(
 );
 const service = createEvidenceWitnessService({
   loadBackupVerification: async () => {
-    const encoded = await secrets.fetch(backupVerificationName);
+    const encoded = await loadOptionalBootstrap(backupVerificationName);
     return encoded ? JSON.parse(encoded) : null;
   },
   loadSigningState: async () => {
