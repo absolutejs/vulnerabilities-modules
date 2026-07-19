@@ -58,6 +58,30 @@ describe("evidence witness service", () => {
     expect(verification.activeKey?.keyId).toBe(rotated.identity.keyId);
   });
 
+  test("automatically rotates an expired witness key into durable secret state", async () => {
+    const signingState = createEvidenceWitnessSigningState(
+      "2026-07-19T00:00:00Z",
+    );
+    let encoded = encodeEvidenceWitnessSigningState(signingState);
+    const service = createEvidenceWitnessService({
+      loadSigningState: async () => encoded,
+      origin: "https://witness.example",
+      signingState,
+      store: createMemoryEvidenceWitnessStore(),
+      storeSigningState: async (next) => {
+        encoded = next;
+      },
+    });
+    const registry = await service.maintain({
+      maxKeyAgeMs: 1_000,
+      now: new Date("2026-07-19T00:00:02Z"),
+    });
+
+    expect(registry.activeKeyId).not.toBe(signingState.identity.keyId);
+    expect(registry.transitions).toHaveLength(1);
+    expect(JSON.parse(encoded).identity.keyId).toBe(registry.activeKeyId);
+  });
+
   test("verifies a complete log and replays the original durable receipt", async () => {
     const { service } = serviceFixture();
     const evidence = createEvidenceSigningIdentity();

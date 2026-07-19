@@ -48,8 +48,9 @@ Bun.serve({ fetch, port: 3000 });
 The signing identity contains a private key and belongs in a durable secret
 broker, not PostgreSQL or source control. `service.rotate()` stores the new
 secret state before activating it and publishes the cross-signed transition in
-the registry. In a multi-replica service, the supplied secret-store integration
-must serialize rotations.
+the registry. `service.maintain()` performs the same rotation only after the
+configured maximum key age. In a multi-replica service, the supplied
+secret-store integration must serialize rotations.
 
 ## Standalone service
 
@@ -61,7 +62,16 @@ observations and accepts these deployment secrets:
 - `EVIDENCE_WITNESS_SIGNING_STATE_JSON`
 - `EVIDENCE_WITNESS_TOKENS_JSON`, an object mapping stable subjects to bearer
   tokens
+- `EVIDENCE_WITNESS_SECRETS_PATH`, the durable encrypted secret file
+- `EVIDENCE_WITNESS_SECRETS_PASSPHRASE`, the master passphrase kept outside the
+  file
+- `EVIDENCE_WITNESS_KEY_MAX_AGE_MS`, defaulting to 90 days
+- `EVIDENCE_WITNESS_MAINTENANCE_INTERVAL_MS`, defaulting to one hour
 - `PORT`, defaulting to `3000`
+
+The two JSON values bootstrap the encrypted file only when their entries do not
+already exist. Later key rotations are written atomically to the encrypted file
+before the new identity becomes active.
 
 Run independent instances under different administrative and infrastructure
 boundaries. Clients should pin each genesis witness key through an independent

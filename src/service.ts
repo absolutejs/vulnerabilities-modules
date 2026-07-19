@@ -100,6 +100,27 @@ export const createEvidenceWitnessService = (options: {
     );
     return queued;
   };
+  const maintain = (input: { maxKeyAgeMs: number; now?: Date }) => {
+    if (!Number.isSafeInteger(input.maxKeyAgeMs) || input.maxKeyAgeMs < 1)
+      throw new Error("Evidence witness maximum key age is invalid");
+    const now = input.now ?? new Date();
+    const queued = mutationQueue.then(async () => {
+      await refresh();
+      const ageMs = now.getTime() - Date.parse(state.identity.createdAt);
+      if (ageMs < input.maxKeyAgeMs)
+        return evidenceWitnessKeyRegistryFrom(state);
+      const next = rotateEvidenceWitnessSigningState(state, now.toISOString());
+      await options.storeSigningState(encodeEvidenceWitnessSigningState(next));
+      state = next;
+      return evidenceWitnessKeyRegistryFrom(state);
+    });
+    mutationQueue = queued.then(
+      () => undefined,
+      () => undefined,
+    );
 
-  return { checkpoint, registry, rotate };
+    return queued;
+  };
+
+  return { checkpoint, maintain, registry, rotate };
 };
