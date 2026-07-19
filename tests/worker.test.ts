@@ -17,6 +17,7 @@ import { describe, expect, test } from "bun:test";
 import {
   createVulnerabilityIntelligenceMemoryStores,
   type VulnerabilityIntelligenceAdapters,
+  type VulnerabilityInventoryTarget,
 } from "../src/intelligence";
 import { createVulnerabilityIntelligenceWorker } from "../src/worker";
 
@@ -91,6 +92,31 @@ const advisory: VulnerabilityAdvisory = {
   withdrawnAt: null,
 };
 
+const inventoryTarget = (
+  assetId: string,
+  release: string,
+): VulnerabilityInventoryTarget => ({
+  asset: {
+    contract: VULNERABILITY_CONTRACT_VERSION,
+    criticality: "high",
+    environment: "production",
+    id: assetId,
+    kind: "deployment",
+    labels: {},
+    name: assetId,
+    tenantId: assetId,
+    version: release,
+  },
+  components: [],
+  evidence: {
+    collectedAt: timestamp,
+    digest: `sha256:${"a".repeat(64)}`,
+    kind: "inventory",
+    source: "paas-release",
+    uri: `inventory://${assetId}/${release}`,
+  },
+});
+
 const adapters = (
   override: Partial<VulnerabilityIntelligenceAdapters> = {},
 ): VulnerabilityIntelligenceAdapters => ({
@@ -130,6 +156,82 @@ const leases = () => {
 };
 
 describe("vulnerability intelligence worker", () => {
+  test("reloads live inventory and reports deployment drift", async () => {
+    const snapshots = [
+      [inventoryTarget("deployment-1", "release-1")],
+      [
+        inventoryTarget("deployment-1", "release-2"),
+        inventoryTarget("deployment-2", "release-1"),
+      ],
+    ];
+    let loads = 0;
+    const events: string[] = [];
+    const worker = createVulnerabilityIntelligenceWorker({
+      adapters: adapters(),
+      history: history().store,
+      inventoryProvider: {
+        load: async () => ({
+          capturedAt: timestamp,
+          revision: `revision-${loads + 1}`,
+          source: "paas-active-deployments",
+          targets: snapshots[loads++] ?? snapshots.at(-1)!,
+        }),
+      },
+      leases: leases(),
+      retries: 0,
+      stores: createVulnerabilityIntelligenceMemoryStores(),
+      workerId: "worker-1",
+      clock: () => new Date(timestamp),
+      onEvent: ({ kind }) => {
+        events.push(kind);
+      },
+    });
+
+    await worker.runOnce();
+    expect(worker.metrics().inventory).toMatchObject({
+      added: 1,
+      changed: 0,
+      removed: 0,
+      targets: 1,
+    });
+    await worker.runOnce();
+    expect(loads).toBe(2);
+    expect(worker.metrics().inventory).toMatchObject({
+      added: 1,
+      changed: 1,
+      lastRevision: "revision-2",
+      removed: 0,
+      targets: 2,
+    });
+    expect(
+      events.filter((kind) => kind === "vulnerability.inventory.loaded"),
+    ).toHaveLength(2);
+  });
+
+  test("degrades health when live inventory cannot be loaded", async () => {
+    const worker = createVulnerabilityIntelligenceWorker({
+      adapters: adapters(),
+      history: history().store,
+      inventoryProvider: {
+        load: async () => {
+          throw new Error("deployment inventory unavailable");
+        },
+      },
+      leases: leases(),
+      retries: 0,
+      stores: createVulnerabilityIntelligenceMemoryStores(),
+      workerId: "worker-1",
+      clock: () => new Date(timestamp),
+    });
+
+    await worker.runOnce();
+    expect(worker.metrics().inventory).toMatchObject({
+      failures: 1,
+      lastError: "deployment inventory unavailable",
+    });
+    expect(worker.health().status).toBe("degraded");
+  });
+
   test("retries provider failures, records every attempt, and reports health", async () => {
     const syncHistory = history();
     const events: string[] = [];

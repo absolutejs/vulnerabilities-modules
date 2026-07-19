@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   createWakeScheduler,
   type WakeSchedulerMetrics,
@@ -51,6 +52,20 @@ type WorkerFeedStatus =
   | "worker_failed";
 
 export type VulnerabilityIntelligenceWorkerEvent =
+  | {
+      kind:
+        | "vulnerability.inventory.load_failed"
+        | "vulnerability.inventory.loaded";
+      metadata: {
+        added: number;
+        changed: number;
+        error: string | null;
+        removed: number;
+        revision: string | null;
+        source: string | null;
+        targets: number;
+      };
+    }
   | {
       kind:
         | "vulnerability.feed.failed"
@@ -136,6 +151,17 @@ export type VulnerabilityIntelligenceWorkerMetrics = {
     unknown: number;
   };
   feeds: Record<VulnerabilityFeedKey, VulnerabilityFeedWorkerMetrics>;
+  inventory: {
+    added: number;
+    changed: number;
+    failures: number;
+    lastError: string | null;
+    lastLoadedAt: string | null;
+    lastRevision: string | null;
+    removed: number;
+    source: string | null;
+    targets: number;
+  };
   leaseSkips: number;
   overlapSkips: number;
   risk: {
@@ -189,12 +215,24 @@ export type VulnerabilityIntelligenceHealth = {
   status: "blocked" | "degraded" | "passed";
 };
 
+export type VulnerabilityInventorySnapshot = {
+  capturedAt: string;
+  revision: string;
+  source: string;
+  targets: readonly VulnerabilityInventoryTarget[];
+};
+
+export type VulnerabilityInventoryProvider = {
+  load: () => Promise<VulnerabilityInventorySnapshot>;
+};
+
 export type VulnerabilityIntelligenceWorkerOptions = {
   adapters: VulnerabilityIntelligenceAdapters;
   clock?: () => Date;
   healthMaxAgeMs?: number;
   history: FeedSyncRunStore;
   inventory?: readonly VulnerabilityInventoryTarget[];
+  inventoryProvider?: VulnerabilityInventoryProvider;
   intervalMs?: number;
   leaseTtlMs?: number;
   leases: FeedLeaseStore;
@@ -264,6 +302,46 @@ const eventKind = (status: WorkerFeedStatus) => {
   return "vulnerability.feed.synced" as const;
 };
 
+const inventoryFingerprint = (target: VulnerabilityInventoryTarget) =>
+  createHash("sha256")
+    .update(
+      JSON.stringify({
+        asset: target.asset,
+        components: target.components,
+        evidence: target.evidence
+          ? {
+              digest: target.evidence.digest,
+              source: target.evidence.source,
+              uri: target.evidence.uri,
+            }
+          : null,
+      }),
+    )
+    .digest("hex");
+
+const validateInventorySnapshot = (
+  snapshot: VulnerabilityInventorySnapshot,
+) => {
+  if (!snapshot.source.trim())
+    throw new Error("Inventory snapshot source is required");
+  if (!snapshot.revision.trim())
+    throw new Error("Inventory snapshot revision is required");
+  if (Number.isNaN(Date.parse(snapshot.capturedAt)))
+    throw new Error("Inventory snapshot capturedAt must be a timestamp");
+  const assetIds = new Set<string>();
+  for (const target of snapshot.targets) {
+    if (assetIds.has(target.asset.id))
+      throw new Error(`Inventory snapshot repeats asset ${target.asset.id}`);
+    assetIds.add(target.asset.id);
+    if (target.evidence?.kind !== "inventory")
+      throw new Error(
+        `Inventory snapshot evidence for ${target.asset.id} must have kind inventory`,
+      );
+  }
+
+  return snapshot;
+};
+
 export const createVulnerabilityIntelligenceWorker = (
   options: VulnerabilityIntelligenceWorkerOptions,
 ) => {
@@ -295,6 +373,10 @@ export const createVulnerabilityIntelligenceWorker = (
       new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
   const workerId = options.workerId.trim();
   if (!workerId) throw new Error("Vulnerability workerId is required");
+  if (options.inventory && options.inventoryProvider)
+    throw new Error(
+      "Vulnerability inventory and inventoryProvider are mutually exclusive",
+    );
   const state: VulnerabilityIntelligenceWorkerState = {
     correlation: {
       assets: 0,
@@ -311,6 +393,17 @@ export const createVulnerabilityIntelligenceWorker = (
       kev: structuredClone(EMPTY_FEED_METRICS),
       osv: structuredClone(EMPTY_FEED_METRICS),
       ubuntu: structuredClone(EMPTY_FEED_METRICS),
+    },
+    inventory: {
+      added: 0,
+      changed: 0,
+      failures: 0,
+      lastError: null,
+      lastLoadedAt: null,
+      lastRevision: null,
+      removed: 0,
+      source: null,
+      targets: options.inventory?.length ?? 0,
     },
     leaseSkips: 0,
     overlapSkips: 0,
@@ -347,10 +440,13 @@ export const createVulnerabilityIntelligenceWorker = (
     workerFailures: 0,
   };
 
-  const refreshVex = async (reconciledAt: string) => {
+  const refreshVex = async (
+    inventory: readonly VulnerabilityInventoryTarget[],
+    reconciledAt: string,
+  ) => {
     if (
       !options.findings ||
-      !options.inventory?.length ||
+      !inventory.length ||
       !options.vexApplications ||
       !options.vexDecisions
     )
@@ -361,7 +457,7 @@ export const createVulnerabilityIntelligenceWorker = (
         decisions: options.vex ?? [],
         decisionStore: options.vexDecisions,
         findings: options.findings,
-        inventory: options.inventory,
+        inventory,
         reconciledAt,
       });
       Object.assign(state.vex, {
@@ -397,10 +493,13 @@ export const createVulnerabilityIntelligenceWorker = (
     }
   };
 
-  const refreshRemediation = async (observedAt: string) => {
+  const refreshRemediation = async (
+    inventory: readonly VulnerabilityInventoryTarget[],
+    observedAt: string,
+  ) => {
     if (
       !options.findings ||
-      !options.inventory?.length ||
+      !inventory.length ||
       !options.remediationDeployments ||
       !options.remediationExecutions ||
       !options.remediationPlans ||
@@ -411,14 +510,14 @@ export const createVulnerabilityIntelligenceWorker = (
       const drafts = await createVulnerabilityRemediationDrafts({
         createdAt: observedAt,
         findings: options.findings,
-        inventory: options.inventory,
+        inventory,
         plans: options.remediationPlans,
       });
       const reconciled = await reconcileVulnerabilityRemediation({
         deployments: options.remediationDeployments,
         executions: options.remediationExecutions,
         findings: options.findings,
-        inventory: options.inventory,
+        inventory,
         observedAt,
         plans: options.remediationPlans,
         verifications: options.remediationVerifications,
@@ -459,13 +558,10 @@ export const createVulnerabilityIntelligenceWorker = (
 
   const refreshRisk = async (
     feeds: Record<VulnerabilityFeedKey, FeedRefreshOutput>,
+    inventory: readonly VulnerabilityInventoryTarget[],
     assessedAt: string,
   ) => {
-    if (
-      !options.findings ||
-      !options.inventory?.length ||
-      !options.riskAssessments
-    )
+    if (!options.findings || !inventory.length || !options.riskAssessments)
       return;
     if (
       !["updated", "not_modified"].includes(feeds.epss.status) ||
@@ -483,7 +579,7 @@ export const createVulnerabilityIntelligenceWorker = (
         assessedAt,
         epss: epss.records.map(({ value }) => value),
         findings: options.findings,
-        inventory: options.inventory,
+        inventory,
         kev: kev.records.map(({ value }) => value),
         riskAssessments: options.riskAssessments,
       });
@@ -516,11 +612,13 @@ export const createVulnerabilityIntelligenceWorker = (
 
   const refreshInventory = async (
     feeds: Record<VulnerabilityFeedKey, FeedRefreshOutput>,
+    inventory: readonly VulnerabilityInventoryTarget[],
+    reconciliationInventory: readonly VulnerabilityInventoryTarget[] = inventory,
   ) => {
     if (
       !options.findings ||
       !options.observations ||
-      !options.inventory?.length
+      !reconciliationInventory.length
     )
       return;
     if (
@@ -542,7 +640,7 @@ export const createVulnerabilityIntelligenceWorker = (
           ...ubuntu.records.map(({ value }) => value),
         ],
         findings: options.findings,
-        inventory: options.inventory,
+        inventory: reconciliationInventory,
         observations: options.observations,
         observedAt,
       });
@@ -555,9 +653,9 @@ export const createVulnerabilityIntelligenceWorker = (
         kind: "vulnerability.inventory.correlated",
         metadata: { ...result, error: null },
       });
-      if (!(await refreshVex(observedAt))) return;
-      await refreshRemediation(observedAt);
-      await refreshRisk(feeds, observedAt);
+      if (!(await refreshVex(inventory, observedAt))) return;
+      await refreshRemediation(inventory, observedAt);
+      await refreshRisk(feeds, inventory, observedAt);
     } catch (error) {
       state.correlation.failures += 1;
       state.correlation.lastError =
@@ -566,7 +664,7 @@ export const createVulnerabilityIntelligenceWorker = (
       await options.onEvent?.({
         kind: "vulnerability.inventory.failed",
         metadata: {
-          assets: options.inventory.length,
+          assets: reconciliationInventory.length,
           error: state.correlation.lastError,
           findings: 0,
           observations: 0,
@@ -683,6 +781,86 @@ export const createVulnerabilityIntelligenceWorker = (
     }
   };
 
+  let previousInventory = new Map<string, VulnerabilityInventoryTarget>();
+  const loadInventory = async () => {
+    if (!options.inventoryProvider)
+      return {
+        current: options.inventory ?? [],
+        reconciliation: options.inventory ?? [],
+      };
+    try {
+      const snapshot = validateInventorySnapshot(
+        await options.inventoryProvider.load(),
+      );
+      const current = new Map(
+        snapshot.targets.map((target) => [target.asset.id, target]),
+      );
+      let added = 0;
+      let changed = 0;
+      for (const [assetId, target] of current) {
+        const prior = previousInventory.get(assetId);
+        if (!prior) added += 1;
+        else if (inventoryFingerprint(prior) !== inventoryFingerprint(target))
+          changed += 1;
+      }
+      const removed = [...previousInventory.keys()].filter(
+        (assetId) => !current.has(assetId),
+      );
+      const retired = removed.map((assetId) => ({
+        ...previousInventory.get(assetId)!,
+        components: [],
+      }));
+      previousInventory = current;
+      Object.assign(state.inventory, {
+        added,
+        changed,
+        lastError: null,
+        lastLoadedAt: clock().toISOString(),
+        lastRevision: snapshot.revision,
+        removed: removed.length,
+        source: snapshot.source,
+        targets: snapshot.targets.length,
+      });
+      await options.onEvent?.({
+        kind: "vulnerability.inventory.loaded",
+        metadata: {
+          added,
+          changed,
+          error: null,
+          removed: removed.length,
+          revision: snapshot.revision,
+          source: snapshot.source,
+          targets: snapshot.targets.length,
+        },
+      });
+
+      return {
+        current: snapshot.targets,
+        reconciliation: [...snapshot.targets, ...retired],
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Inventory load failed";
+      state.inventory.failures += 1;
+      state.inventory.lastError = message;
+      options.onError?.(error, "osv");
+      await options.onEvent?.({
+        kind: "vulnerability.inventory.load_failed",
+        metadata: {
+          added: 0,
+          changed: 0,
+          error: message,
+          removed: 0,
+          revision: null,
+          source: null,
+          targets: 0,
+        },
+      });
+
+      return null;
+    }
+  };
+
   let activeRun: Promise<
     Record<VulnerabilityFeedKey, FeedRefreshOutput>
   > | null = null;
@@ -705,7 +883,13 @@ export const createVulnerabilityIntelligenceWorker = (
           osv,
           ubuntu,
         };
-        await refreshInventory(feeds);
+        const inventory = await loadInventory();
+        if (inventory)
+          await refreshInventory(
+            feeds,
+            inventory.current,
+            inventory.reconciliation,
+          );
 
         return feeds;
       })
@@ -776,6 +960,7 @@ export const createVulnerabilityIntelligenceWorker = (
             status === "worker_failed",
         ) ||
         state.correlation.lastError !== null ||
+        state.inventory.lastError !== null ||
         state.remediation.lastError !== null ||
         state.risk.lastError !== null ||
         state.vex.lastError !== null;

@@ -15,6 +15,7 @@ import {
   type FeedSnapshotStore,
   type FeedSyncRunStore,
   type FeedSyncResult,
+  type EvidenceReference,
   type ManagedFindingStore,
   type ManagedVulnerabilityFinding,
   type RemediationDeployment,
@@ -227,6 +228,7 @@ export const reconcileVulnerabilityVex = async (input: {
 export type VulnerabilityInventoryTarget = {
   asset: VulnerabilityAsset;
   components: VulnerabilityComponent[];
+  evidence?: EvidenceReference;
 };
 
 export type VulnerabilityRemediationDeploymentProvider = (
@@ -527,6 +529,7 @@ export const correlateVulnerabilityIntelligenceInventory = async (input: {
         asset: target.asset,
         components: target.components,
         existingFindings,
+        inventoryEvidence: target.evidence,
         observedAt: input.observedAt,
       });
       await Promise.all([
