@@ -31,7 +31,7 @@ export type EvidenceWitnessResponse = {
 export const EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT =
   "absolutejs.vulnerability-evidence-witness-backup-verification/v1" as const;
 export const EVIDENCE_WITNESS_STATUS_CONTRACT =
-  "absolutejs.vulnerability-evidence-witness-status/v1" as const;
+  "absolutejs.vulnerability-evidence-witness-status/v2" as const;
 
 export type EvidenceWitnessBackupVerification = {
   contract: typeof EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT;
@@ -46,6 +46,7 @@ export type EvidenceWitnessStatus = {
   backup: EvidenceWitnessBackupVerification | null;
   checkedAt: string;
   contract: typeof EVIDENCE_WITNESS_STATUS_CONTRACT;
+  latestCheckpoint: EvidenceWitnessResponse["checkpoint"] | null;
   registry: EvidenceWitnessKeyRegistry;
 };
 
@@ -117,7 +118,7 @@ export const createEvidenceWitnessService = (options: {
     await refresh();
     return evidenceWitnessKeyRegistryFrom(state);
   };
-  const status = async (): Promise<EvidenceWitnessStatus> => ({
+  const status = async (subject: string): Promise<EvidenceWitnessStatus> => ({
     backup: options.loadBackupVerification
       ? await options
           .loadBackupVerification()
@@ -129,6 +130,9 @@ export const createEvidenceWitnessService = (options: {
       : null,
     checkedAt: new Date().toISOString(),
     contract: EVIDENCE_WITNESS_STATUS_CONTRACT,
+    latestCheckpoint: await options.store
+      .latest(subject)
+      .then((observation) => observation?.checkpoint ?? null),
     registry: await registry(),
   });
   const checkpoint = async (

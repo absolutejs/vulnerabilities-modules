@@ -212,9 +212,9 @@ describe("evidence witness service", () => {
     expect(keys.status).toBe(200);
     expect(deniedStatus.status).toBe(401);
     expect(status.status).toBe(200);
-    expect((await status.json()).backup.verifiedAt).toBe(
-      "2026-07-19T01:02:00Z",
-    );
+    const statusPayload = await status.json();
+    expect(statusPayload.backup.verifiedAt).toBe("2026-07-19T01:02:00Z");
+    expect(statusPayload.latestCheckpoint.logHead).toBe(log.head);
     expect((await accepted.json()).checkpoint.logHead).toBe(log.head);
   });
 });

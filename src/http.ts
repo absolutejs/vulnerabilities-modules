@@ -35,7 +35,7 @@ export const createEvidenceWitnessHttpHandler =
     if (request.method === "GET" && url.pathname === "/v1/status") {
       const subject = await options.authenticate(bearer(request));
       if (!subject) return json({ error: "unauthorized" }, 401);
-      return json(await options.service.status());
+      return json(await options.service.status(subject));
     }
     if (request.method !== "POST" || url.pathname !== "/v1/checkpoints")
       return json({ error: "not_found" }, 404);

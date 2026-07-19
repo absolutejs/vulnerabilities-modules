@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 - 2026-07-19
+
+- Prove checkpoint freshness without replacing immutable receipts by returning
+  the authenticated subject's latest durable checkpoint in status contract v2.
+
 ## 0.2.1 - 2026-07-19
 
 - Persist an optional initial backup-verification record from the standalone
