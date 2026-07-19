@@ -9,6 +9,7 @@ import {
 } from "@absolutejs/vulnerabilities/evidence-transparency";
 import { describe, expect, test } from "bun:test";
 import {
+  EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT,
   EVIDENCE_WITNESS_REQUEST_CONTRACT,
   EvidenceWitnessEquivocationError,
   EvidenceWitnessRollbackError,
@@ -153,7 +154,27 @@ describe("evidence witness service", () => {
   });
 
   test("authenticates checkpoint writes while publishing witness keys", async () => {
-    const { service } = serviceFixture();
+    const signingState = createEvidenceWitnessSigningState(
+      "2026-07-19T00:00:00Z",
+    );
+    let encoded = encodeEvidenceWitnessSigningState(signingState);
+    const service = createEvidenceWitnessService({
+      loadBackupVerification: async () => ({
+        contract: EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT,
+        databaseArtifactDigest: `sha256:${"a".repeat(64)}`,
+        databaseRestoredAt: "2026-07-19T01:00:00Z",
+        signingStateArtifactDigest: `sha256:${"b".repeat(64)}`,
+        signingStateRestoredAt: "2026-07-19T01:01:00Z",
+        verifiedAt: "2026-07-19T01:02:00Z",
+      }),
+      loadSigningState: async () => encoded,
+      origin: "https://witness.example",
+      signingState,
+      store: createMemoryEvidenceWitnessStore(),
+      storeSigningState: async (next) => {
+        encoded = next;
+      },
+    });
     const handler = createEvidenceWitnessHttpHandler({
       authenticate: async (token) =>
         token === "valid-token" ? "paas-production" : null,
@@ -177,10 +198,23 @@ describe("evidence witness service", () => {
       }),
     );
     const keys = await handler(new Request("https://witness.example/v1/keys"));
+    const deniedStatus = await handler(
+      new Request("https://witness.example/v1/status"),
+    );
+    const status = await handler(
+      new Request("https://witness.example/v1/status", {
+        headers: { authorization: "Bearer valid-token" },
+      }),
+    );
 
     expect(denied.status).toBe(401);
     expect(accepted.status).toBe(200);
     expect(keys.status).toBe(200);
+    expect(deniedStatus.status).toBe(401);
+    expect(status.status).toBe(200);
+    expect((await status.json()).backup.verifiedAt).toBe(
+      "2026-07-19T01:02:00Z",
+    );
     expect((await accepted.json()).checkpoint.logHead).toBe(log.head);
   });
 });

@@ -28,6 +28,7 @@ const positiveInteger = (name: string, fallback: number) => {
 
 const signingStateName = "EVIDENCE_WITNESS_SIGNING_STATE_JSON";
 const tokensName = "EVIDENCE_WITNESS_TOKENS_JSON";
+const backupVerificationName = "EVIDENCE_WITNESS_BACKUP_VERIFICATION_JSON";
 const masterPassphrase = required("EVIDENCE_WITNESS_SECRETS_PASSPHRASE");
 const secrets = encryptedFileAdapter({
   key: { passphrase: masterPassphrase, type: "passphrase" },
@@ -56,6 +57,10 @@ const subjectsByToken = new Map(
   Object.entries(tokens).map(([subject, token]) => [token, subject]),
 );
 const service = createEvidenceWitnessService({
+  loadBackupVerification: async () => {
+    const encoded = await secrets.fetch(backupVerificationName);
+    return encoded ? JSON.parse(encoded) : null;
+  },
   loadSigningState: async () => {
     const encoded = await secrets.fetch(signingStateName);
     if (!encoded) throw new Error("Evidence witness signing state is missing");

@@ -67,6 +67,15 @@ observations and accepts these deployment secrets:
   file
 - `EVIDENCE_WITNESS_KEY_MAX_AGE_MS`, defaulting to 90 days
 - `EVIDENCE_WITNESS_MAINTENANCE_INTERVAL_MS`, defaulting to one hour
+
+The authenticated `GET /v1/status` endpoint reports the verified key registry
+and optional backup restoration evidence. Store
+`EVIDENCE_WITNESS_BACKUP_VERIFICATION_JSON` in the encrypted secret adapter
+after a drill has restored both the PostgreSQL artifact and encrypted signing
+state. The record must use the
+`absolutejs.vulnerability-evidence-witness-backup-verification/v1` contract,
+contain SHA-256 digests for both artifacts, and record both restoration times.
+
 - `PORT`, defaulting to `3000`
 
 The two JSON values bootstrap the encrypted file only when their entries do not

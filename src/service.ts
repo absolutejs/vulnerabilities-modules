@@ -28,7 +28,74 @@ export type EvidenceWitnessResponse = {
   registry: EvidenceWitnessKeyRegistry;
 };
 
+export const EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT =
+  "absolutejs.vulnerability-evidence-witness-backup-verification/v1" as const;
+export const EVIDENCE_WITNESS_STATUS_CONTRACT =
+  "absolutejs.vulnerability-evidence-witness-status/v1" as const;
+
+export type EvidenceWitnessBackupVerification = {
+  contract: typeof EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT;
+  databaseArtifactDigest: `sha256:${string}`;
+  databaseRestoredAt: string;
+  signingStateArtifactDigest: `sha256:${string}`;
+  signingStateRestoredAt: string;
+  verifiedAt: string;
+};
+
+export type EvidenceWitnessStatus = {
+  backup: EvidenceWitnessBackupVerification | null;
+  checkedAt: string;
+  contract: typeof EVIDENCE_WITNESS_STATUS_CONTRACT;
+  registry: EvidenceWitnessKeyRegistry;
+};
+
+const timestamp = (value: string, label: string) => {
+  if (!Number.isFinite(Date.parse(value)))
+    throw new Error(`${label} is invalid`);
+  return value;
+};
+
+const digest = (value: string, label: string) => {
+  if (!/^sha256:[a-f0-9]{64}$/u.test(value))
+    throw new Error(`${label} is invalid`);
+  return value as `sha256:${string}`;
+};
+
+export const parseEvidenceWitnessBackupVerification = (
+  value: unknown,
+): EvidenceWitnessBackupVerification => {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new Error("Evidence witness backup verification is invalid");
+  const input = value as Partial<EvidenceWitnessBackupVerification>;
+  if (input.contract !== EVIDENCE_WITNESS_BACKUP_VERIFICATION_CONTRACT)
+    throw new Error("Evidence witness backup verification is unsupported");
+  return {
+    contract: input.contract,
+    databaseArtifactDigest: digest(
+      input.databaseArtifactDigest ?? "",
+      "Evidence witness database backup digest",
+    ),
+    databaseRestoredAt: timestamp(
+      input.databaseRestoredAt ?? "",
+      "Evidence witness database restore time",
+    ),
+    signingStateArtifactDigest: digest(
+      input.signingStateArtifactDigest ?? "",
+      "Evidence witness signing-state backup digest",
+    ),
+    signingStateRestoredAt: timestamp(
+      input.signingStateRestoredAt ?? "",
+      "Evidence witness signing-state restore time",
+    ),
+    verifiedAt: timestamp(
+      input.verifiedAt ?? "",
+      "Evidence witness backup verification time",
+    ),
+  };
+};
+
 export const createEvidenceWitnessService = (options: {
+  loadBackupVerification?: () => Promise<unknown | null>;
   loadSigningState: () => Promise<string>;
   origin: string;
   signingState: EvidenceWitnessSigningState;
@@ -50,6 +117,20 @@ export const createEvidenceWitnessService = (options: {
     await refresh();
     return evidenceWitnessKeyRegistryFrom(state);
   };
+  const status = async (): Promise<EvidenceWitnessStatus> => ({
+    backup: options.loadBackupVerification
+      ? await options
+          .loadBackupVerification()
+          .then((value) =>
+            value === null
+              ? null
+              : parseEvidenceWitnessBackupVerification(value),
+          )
+      : null,
+    checkedAt: new Date().toISOString(),
+    contract: EVIDENCE_WITNESS_STATUS_CONTRACT,
+    registry: await registry(),
+  });
   const checkpoint = async (
     subject: string,
     request: EvidenceWitnessRequest,
@@ -122,5 +203,5 @@ export const createEvidenceWitnessService = (options: {
     return queued;
   };
 
-  return { checkpoint, maintain, registry, rotate };
+  return { checkpoint, maintain, registry, rotate, status };
 };

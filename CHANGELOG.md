@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - 2026-07-19
+
+- Add an authenticated operational-status endpoint with the verified witness
+  key registry and concrete database/signing-state backup restore evidence.
+- Treat missing or malformed backup verification as unavailable posture rather
+  than inferring recoverability from service liveness.
+
 ## 0.1.1 - 2026-07-19
 
 - Persist standalone-service signing state and subject tokens through the

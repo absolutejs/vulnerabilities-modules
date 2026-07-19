@@ -7,7 +7,7 @@
       "dependencies": {
         "@absolutejs/manifest": "0.3.0",
         "@absolutejs/secrets": "0.7.2",
-        "@absolutejs/vulnerabilities": "0.13.0",
+        "@absolutejs/vulnerabilities": "0.14.0",
         "@sinclair/typebox": "0.34.52",
       },
       "devDependencies": {
@@ -26,7 +26,7 @@
 
     "@absolutejs/telemetry": ["@absolutejs/telemetry@0.1.1", "", {}, "sha512-NcwsZytPOVQSnksYVofmvdDNqIwIJLbUmAMAZD5v2gLy98JgtvEmR1kHGNIXGAZgHA4rqofQt7PZlVCCwlx2mQ=="],
 
-    "@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.13.0", "", { "dependencies": { "@absolutejs/manifest": "0.3.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-Cqn7pJlp8PD4lZgY82EKhZBWH5dOJpC0mAaFNsThdHbchimMgtSeksoI0wpzuoQpl9qeDk/a5MGidGOoRL0oCw=="],
+    "@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.14.0", "", { "dependencies": { "@absolutejs/manifest": "0.3.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-GOWQl/vqXCOZRQvwEc1sIKIMOBKgSgY/epWb4tRz8o+rgu4Qr8wAaRK/fnRcR1BI2+zRjwedf3AOm0z/UExGbw=="],
 
     "@renovatebot/pep440": ["@renovatebot/pep440@5.0.0", "", {}, "sha512-91cFM32/pnOAvC7W1W1kPPI9QM2y6OrYCeomz7pop4A+3Ksh2XnZXGznUMlzR7YbOQlg7X/MNlF27s9Yt9hhTA=="],
 
