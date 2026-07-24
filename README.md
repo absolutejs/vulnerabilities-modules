@@ -1,5 +1,8 @@
 # @absolutejs/vulnerabilities-witness
 
+The witness consumes `@absolutejs/secrets@^0.9.2`, whose Agency integration is
+host-owned and externalized. It never embeds a second Secrets or Agency runtime.
+
 Independent transparency witnessing for AbsoluteJS vulnerability evidence.
 The package verifies the complete signed evidence-key transparency log before
 issuing an Ed25519 checkpoint receipt. Durable stores reject a lower log size
