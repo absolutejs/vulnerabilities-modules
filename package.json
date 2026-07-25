@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-witness",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Independent durable transparency witness with rollback, equivocation, key-rotation, and HTTP service primitives for AbsoluteJS vulnerability evidence.",
   "type": "module",
   "license": "BSL-1.1",
@@ -49,7 +49,8 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "build": "rm -rf dist && bun build --root src src/index.ts src/postgres.ts src/server.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/secrets --external @absolutejs/vulnerabilities --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
-    "check:package": "bun run format && bun run typecheck && bun run test && bun run build"
+    "verify-package": "absolute-manifest verify-package",
+    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build && bun run verify-package --artifacts"
   },
   "keywords": [
     "absolutejs",
@@ -61,12 +62,12 @@
   ],
   "dependencies": {
     "@absolutejs/manifest": "0.7.2",
-    "@absolutejs/secrets": "^0.9.5",
-    "@absolutejs/vulnerabilities": "0.14.0",
+    "@absolutejs/secrets": "^0.9.6",
+    "@absolutejs/vulnerabilities": "0.14.1",
     "@sinclair/typebox": "0.34.52"
   },
   "devDependencies": {
-    "@absolutejs/agency": "0.7.1",
+    "@absolutejs/agency": "0.7.3",
     "@types/bun": "1.3.14",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
