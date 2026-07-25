@@ -17,7 +17,7 @@
     "access": "public"
   },
   "bin": {
-    "absolute-vulnerability-witness": "./dist/server.js"
+    "absolute-vulnerability-witness": "dist/server.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
