@@ -1,0 +1,75 @@
+{
+  "name": "@absolutejs/vulnerabilities-witness",
+  "version": "0.4.3",
+  "description": "Independent durable transparency witness with rollback, equivocation, key-rotation, and HTTP service primitives for AbsoluteJS vulnerability evidence.",
+  "type": "module",
+  "license": "BSL-1.1",
+  "author": "Alex Kahn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/absolutejs/vulnerabilities-witness.git"
+  },
+  "homepage": "https://github.com/absolutejs/vulnerabilities-witness",
+  "bugs": {
+    "url": "https://github.com/absolutejs/vulnerabilities-witness/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "absolute-vulnerability-witness": "dist/server.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "absolutejs": {
+    "manifestContract": 2
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./postgres": {
+      "types": "./dist/postgres.d.ts",
+      "import": "./dist/postgres.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    },
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "format": "prettier --write \"./**/*.{ts,json,md}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "build": "rm -rf dist && bun build --root src src/index.ts src/postgres.ts src/server.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/secrets --external @absolutejs/vulnerabilities --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
+    "verify-package": "absolute-manifest verify-package",
+    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build && bun run verify-package --artifacts"
+  },
+  "keywords": [
+    "absolutejs",
+    "equivocation",
+    "key-transparency",
+    "security",
+    "vulnerability-management",
+    "witness"
+  ],
+  "dependencies": {
+    "@absolutejs/manifest": "0.7.2",
+    "@absolutejs/secrets": "^0.9.6",
+    "@absolutejs/vulnerabilities": "0.14.1",
+    "@sinclair/typebox": "0.34.52"
+  },
+  "devDependencies": {
+    "@absolutejs/agency": "0.7.3",
+    "@types/bun": "1.3.14",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  }
+}
