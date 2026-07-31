@@ -3,14 +3,14 @@ name: Witness container
 on:
   push:
     branches: [main]
-    tags: ['witness-v*']
+    tags: ["witness-v*"]
     paths:
-      - 'witness/**'
-      - '.github/workflows/witness-container.yml'
+      - "witness/**"
+      - ".github/workflows/witness-container.yml"
   pull_request:
     paths:
-      - 'witness/**'
-      - '.github/workflows/witness-container.yml'
+      - "witness/**"
+      - ".github/workflows/witness-container.yml"
 
 permissions:
   contents: read

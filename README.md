@@ -7,11 +7,11 @@ their source monorepo.
 
 ## Packages
 
-| Workspace | Package | Role |
-| --- | --- | --- |
-| `report/` | `@absolutejs/vulnerabilities-report` | Deterministic evidence-backed reporting |
-| `worker/` | `@absolutejs/vulnerabilities-worker` | Continuous vulnerability intelligence orchestration |
-| `witness/` | `@absolutejs/vulnerabilities-witness` | Independently deployable transparency witness |
+| Workspace  | Package                               | Role                                                |
+| ---------- | ------------------------------------- | --------------------------------------------------- |
+| `report/`  | `@absolutejs/vulnerabilities-report`  | Deterministic evidence-backed reporting             |
+| `worker/`  | `@absolutejs/vulnerabilities-worker`  | Continuous vulnerability intelligence orchestration |
+| `witness/` | `@absolutejs/vulnerabilities-witness` | Independently deployable transparency witness       |
 
 ## Development
 
