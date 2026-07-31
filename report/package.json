@@ -7,11 +7,12 @@
   "author": "Alex Kahn",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/absolutejs/vulnerabilities-report.git"
+    "url": "git+https://github.com/absolutejs/vulnerabilities-modules.git",
+    "directory": "report"
   },
-  "homepage": "https://github.com/absolutejs/vulnerabilities-report",
+  "homepage": "https://github.com/absolutejs/vulnerabilities-modules/tree/main/report",
   "bugs": {
-    "url": "https://github.com/absolutejs/vulnerabilities-report/issues"
+    "url": "https://github.com/absolutejs/vulnerabilities-modules/issues"
   },
   "publishConfig": {
     "access": "public"

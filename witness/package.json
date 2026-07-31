@@ -7,11 +7,12 @@
   "author": "Alex Kahn",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/absolutejs/vulnerabilities-witness.git"
+    "url": "git+https://github.com/absolutejs/vulnerabilities-modules.git",
+    "directory": "witness"
   },
-  "homepage": "https://github.com/absolutejs/vulnerabilities-witness",
+  "homepage": "https://github.com/absolutejs/vulnerabilities-modules/tree/main/witness",
   "bugs": {
-    "url": "https://github.com/absolutejs/vulnerabilities-witness/issues"
+    "url": "https://github.com/absolutejs/vulnerabilities-modules/issues"
   },
   "publishConfig": {
     "access": "public"

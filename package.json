@@ -1,0 +1,21 @@
+{
+  "name": "@absolutejs/vulnerabilities-modules",
+  "private": true,
+  "type": "module",
+  "description": "Optional first-party modules for AbsoluteJS vulnerability management.",
+  "workspaces": [
+    "report",
+    "worker",
+    "witness"
+  ],
+  "scripts": {
+    "build": "bun run --filter './*' build",
+    "check:package": "bun run --filter './*' check:package",
+    "format": "bun run --filter './*' format",
+    "test": "bun run --filter './*' test",
+    "typecheck": "bun run --filter './*' typecheck"
+  },
+  "devDependencies": {
+    "prettier": "3.8.1"
+  }
+}

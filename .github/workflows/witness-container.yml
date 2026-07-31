@@ -1,10 +1,16 @@
-name: Container
+name: Witness container
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['witness-v*']
+    paths:
+      - 'witness/**'
+      - '.github/workflows/witness-container.yml'
   pull_request:
+    paths:
+      - 'witness/**'
+      - '.github/workflows/witness-container.yml'
 
 permissions:
   contents: read
@@ -32,7 +38,7 @@ jobs:
             type=sha
       - uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./witness
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
