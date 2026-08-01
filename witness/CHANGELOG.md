@@ -10,6 +10,9 @@
   digest-pinned deployment and verification instead of the mutable `main` tag.
 - Use the exact Bun Alpine runtime instead of the vulnerable Debian runtime
   package set rejected by the high/critical image gate.
+- Upgrade Alpine runtime packages during the image build so fixed high and
+  critical vulnerabilities cannot survive because the Bun image predates the
+  corresponding Alpine security update.
 
 ## 0.3.0 - 2026-07-19
 

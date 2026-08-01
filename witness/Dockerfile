@@ -11,6 +11,7 @@ FROM oven/bun:1.3.14-alpine AS runtime
 
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk upgrade --no-cache
 COPY --from=build /app/package.json /app/bun.lock ./
 RUN bun install --frozen-lockfile --production
 COPY --from=build /app/dist ./dist
