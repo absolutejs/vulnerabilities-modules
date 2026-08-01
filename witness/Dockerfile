@@ -9,6 +9,7 @@ RUN bun run build
 
 FROM oven/bun:1.3.14-alpine AS runtime
 
+LABEL org.opencontainers.image.source="https://github.com/absolutejs/vulnerabilities-modules"
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apk upgrade --no-cache

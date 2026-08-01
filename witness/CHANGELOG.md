@@ -13,6 +13,9 @@
 - Upgrade Alpine runtime packages during the image build so fixed high and
   critical vulnerabilities cannot survive because the Bun image predates the
   corresponding Alpine security update.
+- Identify the active `absolutejs/vulnerabilities-modules` repository through
+  the standard OCI source annotation instead of the archived standalone
+  witness repository.
 
 ## 0.3.0 - 2026-07-19
 
