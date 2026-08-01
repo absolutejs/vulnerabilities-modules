@@ -8,6 +8,8 @@
   identity and retain immediately verified SLSA provenance and SBOM evidence.
 - Pin every third-party workflow action by immutable commit and document
   digest-pinned deployment and verification instead of the mutable `main` tag.
+- Use the exact Bun Alpine runtime instead of the vulnerable Debian runtime
+  package set rejected by the high/critical image gate.
 
 ## 0.3.0 - 2026-07-19
 

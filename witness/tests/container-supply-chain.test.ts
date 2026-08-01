@@ -7,6 +7,9 @@ const workflow = await Bun.file(
 const deploymentGuide = await Bun.file(
   new URL("witness/deploy/README.md", repositoryRoot),
 ).text();
+const dockerfile = await Bun.file(
+  new URL("witness/Dockerfile", repositoryRoot),
+).text();
 
 const actionReferences = [
   ...workflow.matchAll(/^\s*uses:\s*([^\s#]+?)(?:\s+#.*)?$/gmu),
@@ -55,6 +58,12 @@ describe("Witness container supply chain", () => {
     );
     expect(workflow).toContain("attestations.json");
     expect(workflow).toContain("image-reference.txt");
+  });
+
+  test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {
+    expect(dockerfile).toContain("FROM oven/bun:1.3.14-alpine AS runtime");
+    expect(dockerfile).not.toContain("FROM oven/bun:1.3.14-slim AS runtime");
+    expect(dockerfile).not.toMatch(/^FROM\s+[^\s]+:(?:latest|main)\b/mu);
   });
 
   test("requires digest-pinned deployment and independent witness boundaries", () => {
