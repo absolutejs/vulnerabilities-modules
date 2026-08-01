@@ -35,6 +35,11 @@ describe("Witness container supply chain", () => {
     expect(login).toBeGreaterThan(scan);
     expect(push).toBeGreaterThan(login);
     expect(publication).toContain("severity-cutoff: high");
+    expect(publication).toContain("Retain failed vulnerability evidence");
+    expect(publication).toContain("if: failure()");
+    expect(publication).toContain(
+      "witness-vulnerability-report-${{ github.sha }}",
+    );
     expect(workflow).not.toContain("type=ref,event=branch");
     expect(workflow).not.toMatch(/vulnerabilities-witness:(?:main|latest)/u);
   });

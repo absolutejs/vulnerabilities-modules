@@ -140,7 +140,17 @@ jobs:
           severity-cutoff: high
 
       - name: Stage the vulnerability report
+        if: always()
         run: cp "${{ steps.scan.outputs.json }}" evidence/grype.json
+
+      - name: Retain failed vulnerability evidence
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: witness-vulnerability-report-${{ github.sha }}
+          path: evidence/grype.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Log in to GHCR after validation
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
