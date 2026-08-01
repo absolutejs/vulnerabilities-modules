@@ -5,6 +5,7 @@
     "": {
       "name": "@absolutejs/vulnerabilities-modules",
       "devDependencies": {
+        "@absolutejs/attest": "0.1.3",
         "prettier": "3.8.1",
       },
     },
@@ -27,7 +28,7 @@
     },
     "witness": {
       "name": "@absolutejs/vulnerabilities-witness",
-      "version": "0.4.3",
+      "version": "0.4.4",
       "bin": {
         "absolute-vulnerability-witness": "dist/server.js",
       },
@@ -71,6 +72,8 @@
   },
   "packages": {
     "@absolutejs/agency": ["@absolutejs/agency@0.7.3", "", { "dependencies": { "@absolutejs/manifest": "^0.7.2", "@sinclair/typebox": "^0.34.0" }, "peerDependencies": { "drizzle-orm": ">=1.0.0-rc.4 <2" } }, "sha512-htWVOVl/vmgDCMT2qwYZOnDUSatoReiLkuQ/D1n6p7Co6h/bW+Wg4VB9xO8yqTBBTPnNpJhQUn2fQD7WlsTSNw=="],
+
+    "@absolutejs/attest": ["@absolutejs/attest@0.1.3", "", { "dependencies": { "@absolutejs/manifest": "^0.8.0", "@sinclair/typebox": "^0.34.0" }, "bin": { "absolute-attest": "dist/cli.js" } }, "sha512-1UKr30s2IkUKSmTEwAle3O2/RLJ71h8n84cXtMjXLKE/NlWKECRjJTWcofnWx+8mQZXPEFeRjZFf/PO9HBDnCw=="],
 
     "@absolutejs/handoff": ["@absolutejs/handoff@0.1.0", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" } }, "sha512-P9Wr2oyYBcj7mriCV4h9zRlLGijee/7DW8USVkl/m4ovql7zpITy547jy6j8+HC5v5Ocs+TVcMYmrROEEBupNg=="],
 
@@ -153,5 +156,7 @@
     "uint8array-extras": ["uint8array-extras@1.5.0", "", {}, "sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A=="],
 
     "undici-types": ["undici-types@8.3.0", "", {}, "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="],
+
+    "@absolutejs/attest/@absolutejs/manifest": ["@absolutejs/manifest@0.8.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-kV5BFe/jxXrZa2TVkmpqpIBe+6oZkfSd9GEvyHIBMXgk6k2ohlQPKLu4PSFehZE9fWC6VZMh/WvH6GVbxRsWjA=="],
   }
 }

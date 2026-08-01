@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.4 - 2026-08-01
+
+- Publish only full-revision witness container tags after the complete package
+  gate, SPDX SBOM generation, and a high/critical vulnerability scan.
+- Sign and attest digest-pinned witness images with the GitHub Actions keyless
+  identity and retain immediately verified SLSA provenance and SBOM evidence.
+- Pin every third-party workflow action by immutable commit and document
+  digest-pinned deployment and verification instead of the mutable `main` tag.
+
 ## 0.3.0 - 2026-07-19
 
 - Prove checkpoint freshness without replacing immutable receipts by returning

@@ -91,7 +91,12 @@ channel and require a quorum with
 `verifyEvidenceWitnessQuorum` from `@absolutejs/vulnerabilities`.
 
 The repository publishes a deployable container to
-`ghcr.io/absolutejs/vulnerabilities-witness`. See
+`ghcr.io/absolutejs/vulnerabilities-witness`. Deploy only the digest-pinned
+reference retained in the successful `witness-image-<commit>` workflow
+artifact. The workflow rejects high and critical vulnerabilities, retains an
+SPDX SBOM and Grype report, and immediately verifies the image's keyless
+signature, SLSA provenance, and SBOM attestation against its exact GitHub
+Actions identity. Never deploy the mutable `main` tag. See
 [`deploy/README.md`](deploy/README.md) for the independence requirements,
 bootstrap sequence, PAAS quorum configuration, and repeatable Admin drill
 workflow.

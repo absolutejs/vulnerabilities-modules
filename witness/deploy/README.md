@@ -1,8 +1,13 @@
 # Independent witness deployment contract
 
-Deploy at least two instances from
-`ghcr.io/absolutejs/vulnerabilities-witness:main`. A production quorum is
-independent only when each instance has all of the following:
+Deploy at least two instances from the exact
+`ghcr.io/absolutejs/vulnerabilities-witness@sha256:<digest>` reference retained
+as `image-reference.txt` in the successful `witness-image-<commit>` workflow
+artifact. Before provisioning, verify that digest's keyless signature, SLSA
+provenance, and SPDX SBOM attestation with `@absolutejs/attest` against the
+exact repository, workflow, ref, and commit that produced it. Mutable tags,
+including `main`, are not deployment inputs. A production quorum is independent
+only when each instance has all of the following:
 
 - a different administrative account or organization;
 - a different PostgreSQL database and database credential;
