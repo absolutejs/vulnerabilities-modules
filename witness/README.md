@@ -19,30 +19,30 @@ The HTTP service has three routes:
 
 ```ts
 import {
-  EVIDENCE_WITNESS_REQUEST_CONTRACT,
-  createEvidenceWitnessHttpHandler,
-  createEvidenceWitnessService,
-  createEvidenceWitnessSigningState,
-} from "@absolutejs/vulnerabilities-witness";
+	EVIDENCE_WITNESS_REQUEST_CONTRACT,
+	createEvidenceWitnessHttpHandler,
+	createEvidenceWitnessService,
+	createEvidenceWitnessSigningState
+} from '@absolutejs/vulnerabilities-witness';
 import {
-  createPostgresEvidenceWitnessStore,
-  ensurePostgresEvidenceWitnessSchema,
-} from "@absolutejs/vulnerabilities-witness/postgres";
+	createPostgresEvidenceWitnessStore,
+	ensurePostgresEvidenceWitnessSchema
+} from '@absolutejs/vulnerabilities-witness/postgres';
 
 const signingState = createEvidenceWitnessSigningState();
 await ensurePostgresEvidenceWitnessSchema(sql);
 
 const service = createEvidenceWitnessService({
-  loadSigningState,
-  origin: "https://witness.example",
-  signingState,
-  store: createPostgresEvidenceWitnessStore(sql),
-  storeSigningState,
+	loadSigningState,
+	origin: 'https://witness.example',
+	signingState,
+	store: createPostgresEvidenceWitnessStore(sql),
+	storeSigningState
 });
 
 const fetch = createEvidenceWitnessHttpHandler({
-  authenticate: async (token) => subjectsByToken.get(token) ?? null,
-  service,
+	authenticate: async (token) => subjectsByToken.get(token) ?? null,
+	service
 });
 
 Bun.serve({ fetch, port: 3000 });
@@ -98,5 +98,5 @@ SPDX SBOM and Grype report, and immediately verifies the image's keyless
 signature, SLSA provenance, and SBOM attestation against its exact GitHub
 Actions identity. Never deploy the mutable `main` tag. See
 [`deploy/README.md`](deploy/README.md) for the independence requirements,
-bootstrap sequence, PAAS quorum configuration, and repeatable Admin drill
+bootstrap sequence, hosted-platform quorum configuration, and repeatable Admin drill
 workflow.

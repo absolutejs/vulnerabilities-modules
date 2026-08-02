@@ -30,13 +30,13 @@ After each service is live:
 
 1. Check `GET /health` and retrieve `GET /v1/keys` over HTTPS.
 2. Transfer the genesis public key fingerprint through an independent channel.
-3. Configure PAAS `VULNERABILITY_EVIDENCE_WITNESSES_JSON` with a unique ID,
+3. Configure the hosted platform’s `VULNERABILITY_EVIDENCE_WITNESSES_JSON` with a unique ID,
    HTTPS checkpoint URL, and pinned genesis public key for each service.
 4. Store the corresponding ID-to-token map as the brokered
    `VULNERABILITY_EVIDENCE_WITNESS_TOKENS_JSON` secret.
 5. Set `VULNERABILITY_EVIDENCE_WITNESS_QUORUM` to the required number of
    distinct witnesses.
-6. Run `resilience.evidence-witness-live-quorum` from the PAAS Admin drills
+6. Run `resilience.evidence-witness-live-quorum` from the platform Admin drills
    panel. Its retained run shows the observed head, size, origins, fingerprints,
    replay result, and satisfied quorum.
 
