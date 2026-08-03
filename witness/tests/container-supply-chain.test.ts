@@ -103,6 +103,12 @@ describe("Witness container supply chain", () => {
     expect(workflow.indexOf("witness-backup-restore.sh")).toBeLessThan(
       workflow.indexOf("Log in to GHCR after validation"),
     );
+    expect(
+      workflow.match(/witness\/tests\/witness-backup-upload\.sh/gu),
+    ).toHaveLength(2);
+    expect(workflow.indexOf("witness-backup-upload.sh")).toBeLessThan(
+      workflow.indexOf("Log in to GHCR after validation"),
+    );
   });
 
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {

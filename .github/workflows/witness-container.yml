@@ -48,6 +48,9 @@ jobs:
       - name: Verify encrypted runtime credential materialization
         run: sudo bash witness/tests/witness-runtime-materialization.sh
 
+      - name: Verify encrypted dual-provider backup upload
+        run: sudo --preserve-env=PATH bash witness/tests/witness-backup-upload.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
@@ -160,6 +163,9 @@ jobs:
         env:
           EVIDENCE_WITNESS_TEST_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: sudo --preserve-env=PATH,EVIDENCE_WITNESS_TEST_IMAGE bash witness/tests/witness-backup-restore.sh
+
+      - name: Verify encrypted dual-provider backup upload
+        run: sudo --preserve-env=PATH bash witness/tests/witness-backup-upload.sh
 
       - name: Prepare the evidence directory
         run: mkdir -p evidence

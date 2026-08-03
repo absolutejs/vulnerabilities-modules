@@ -45,8 +45,14 @@ install -D -m 0755 absolutejs-evidence-witness-restore-verify \
   /usr/local/sbin/absolutejs-evidence-witness-restore-verify
 install -D -m 0755 absolutejs-evidence-witness-backup-record \
   /usr/local/sbin/absolutejs-evidence-witness-backup-record
+install -D -m 0755 absolutejs-evidence-witness-backup-upload \
+  /usr/local/sbin/absolutejs-evidence-witness-backup-upload
 install -D -m 0644 absolutejs-evidence-witness.service \
   /etc/systemd/system/absolutejs-evidence-witness.service
+install -D -m 0644 absolutejs-evidence-witness-backup.service \
+  /etc/systemd/system/absolutejs-evidence-witness-backup.service
+install -D -m 0644 absolutejs-evidence-witness-backup.timer \
+  /etc/systemd/system/absolutejs-evidence-witness-backup.timer
 systemctl daemon-reload
 ```
 
@@ -148,6 +154,46 @@ Upload only the encrypted `.gpg` object through a prefix-scoped writer that
 cannot read or delete backup objects. Prefer immutable object retention and a
 second versioned copy in another provider. The offline private key must not be
 installed on a witness for routine backup creation.
+
+The supplied uploader automates that contract every six hours. It requires the
+AWS CLI and GnuPG, one public-only `GNUPGHOME`, an S3 bucket with Object Lock
+default retention, and a DigitalOcean Spaces bucket with versioning. Configure
+`/etc/absolutejs/evidence-witness/backup.env` as root-owned `0600`:
+
+```text
+WITNESS_BACKUP_ID=witness-a
+WITNESS_BACKUP_RECIPIENT_FINGERPRINT=<exact-offline-public-key-fingerprint>
+WITNESS_BACKUP_GNUPGHOME=/etc/absolutejs/evidence-witness/backup-gnupg
+WITNESS_BACKUP_S3_BUCKET=<immutable-bucket>
+WITNESS_BACKUP_S3_PREFIX=witness-a/
+WITNESS_BACKUP_S3_REGION=us-east-1
+WITNESS_BACKUP_S3_EXPECTED_OWNER=<12-digit-account-id>
+WITNESS_BACKUP_SPACES_BUCKET=<versioned-bucket>
+WITNESS_BACKUP_SPACES_PREFIX=witness-a/
+WITNESS_BACKUP_SPACES_REGION=nyc3
+WITNESS_BACKUP_SPACES_ENDPOINT=https://nyc3.digitaloceanspaces.com
+```
+
+Encrypt a distinct, prefix-scoped pair of S3-compatible writer credentials per
+witness under the exact systemd credential name
+`absolutejs.witness.backup-upload.env`. Its plaintext input has this shape and
+must never be persisted after host-bound encryption:
+
+```text
+WITNESS_BACKUP_S3_ACCESS_KEY_ID=<write-only-access-key>
+WITNESS_BACKUP_S3_SECRET_ACCESS_KEY=<write-only-secret-key>
+WITNESS_BACKUP_SPACES_ACCESS_KEY_ID=<bucket-scoped-access-key>
+WITNESS_BACKUP_SPACES_SECRET_ACCESS_KEY=<bucket-scoped-secret-key>
+```
+
+Import only the matching public key into the configured GnuPG directory, then
+enable `absolutejs-evidence-witness-backup.timer`. The uploader disables AWS
+metadata credential discovery, validates the fixed Spaces endpoint, pins the
+AWS account ID, removes the plaintext before either upload, and removes every
+runtime artifact when it exits. A failed independent copy fails the unit and
+is retried by operations; it never reports partial success as a completed
+backup. Keep the offline private key and its passphrase in independent
+operator-controlled recovery storage.
 
 For a restore drill, decrypt on a trusted operator machine and stream the
 plaintext archive over SSH directly into a root-owned `0600` file below

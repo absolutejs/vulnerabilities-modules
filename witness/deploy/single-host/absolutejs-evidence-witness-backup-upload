@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $(id -u) != 0 ]]; then
+	echo "witness backup upload must run as root" >&2
+	exit 1
+fi
+
+configuration=${EVIDENCE_WITNESS_BACKUP_CONFIGURATION:-/etc/absolutejs/evidence-witness/backup.env}
+credential_directory=${CREDENTIALS_DIRECTORY:?systemd credential directory is required}
+credential_file=${credential_directory}/absolutejs.witness.backup-upload.env
+runtime_directory=${EVIDENCE_WITNESS_BACKUP_RUNTIME_DIRECTORY:-/run/absolutejs-evidence-witness-backup}
+
+case "${runtime_directory}" in
+	/run/*) ;;
+	*)
+		echo "witness backup runtime directory must remain below /run" >&2
+		exit 1
+		;;
+esac
+for file in "${configuration}" "${credential_file}"; do
+	if [[ -L ${file} || ! -f ${file} || $(stat -c %U:%G:%a "${file}") != root:root:600 ]]; then
+		echo "witness backup configuration or credential mode is unsafe" >&2
+		exit 1
+	fi
+done
+
+read_setting() {
+	local file=$1
+	local name=$2
+	local count
+	local value
+	count=$(grep -c "^${name}=" "${file}")
+	if [[ ${count} != 1 ]]; then
+		echo "witness backup ${name} setting is missing or duplicated" >&2
+		exit 1
+	fi
+	value=$(grep "^${name}=" "${file}")
+	printf '%s' "${value#*=}"
+}
+
+witness_id=$(read_setting "${configuration}" WITNESS_BACKUP_ID)
+recipient=$(read_setting "${configuration}" WITNESS_BACKUP_RECIPIENT_FINGERPRINT)
+gpg_home=$(read_setting "${configuration}" WITNESS_BACKUP_GNUPGHOME)
+s3_bucket=$(read_setting "${configuration}" WITNESS_BACKUP_S3_BUCKET)
+s3_prefix=$(read_setting "${configuration}" WITNESS_BACKUP_S3_PREFIX)
+s3_region=$(read_setting "${configuration}" WITNESS_BACKUP_S3_REGION)
+s3_owner=$(read_setting "${configuration}" WITNESS_BACKUP_S3_EXPECTED_OWNER)
+spaces_bucket=$(read_setting "${configuration}" WITNESS_BACKUP_SPACES_BUCKET)
+spaces_prefix=$(read_setting "${configuration}" WITNESS_BACKUP_SPACES_PREFIX)
+spaces_region=$(read_setting "${configuration}" WITNESS_BACKUP_SPACES_REGION)
+spaces_endpoint=$(read_setting "${configuration}" WITNESS_BACKUP_SPACES_ENDPOINT)
+s3_access_key=$(read_setting "${credential_file}" WITNESS_BACKUP_S3_ACCESS_KEY_ID)
+s3_secret_key=$(read_setting "${credential_file}" WITNESS_BACKUP_S3_SECRET_ACCESS_KEY)
+spaces_access_key=$(read_setting "${credential_file}" WITNESS_BACKUP_SPACES_ACCESS_KEY_ID)
+spaces_secret_key=$(read_setting "${credential_file}" WITNESS_BACKUP_SPACES_SECRET_ACCESS_KEY)
+
+if [[ ! ${witness_id} =~ ^[a-z0-9][a-z0-9-]{0,62}$ ]]; then
+	echo "witness backup identity is invalid" >&2
+	exit 1
+fi
+if [[ ! ${recipient} =~ ^[A-F0-9]{40,64}$ ]]; then
+	echo "witness backup recipient fingerprint is invalid" >&2
+	exit 1
+fi
+if [[ -L ${gpg_home} || ! -d ${gpg_home} || $(stat -c %U:%G:%a "${gpg_home}") != root:root:700 ]]; then
+	echo "witness backup public-key directory mode is unsafe" >&2
+	exit 1
+fi
+for bucket in "${s3_bucket}" "${spaces_bucket}"; do
+	if [[ ! ${bucket} =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]]; then
+		echo "witness backup bucket name is invalid" >&2
+		exit 1
+	fi
+done
+for prefix in "${s3_prefix}" "${spaces_prefix}"; do
+	if [[ ! ${prefix} =~ ^[a-zA-Z0-9._/-]+/$ || ${prefix} == /* || ${prefix} == *../* ]]; then
+		echo "witness backup object prefix is invalid" >&2
+		exit 1
+	fi
+done
+if [[ ! ${s3_region} =~ ^[a-z0-9-]+$ || ! ${s3_owner} =~ ^[0-9]{12}$ ]]; then
+	echo "witness backup S3 destination is invalid" >&2
+	exit 1
+fi
+if [[ ! ${spaces_region} =~ ^[a-z0-9-]+$ || ! ${spaces_endpoint} =~ ^https://[a-z0-9-]+\.digitaloceanspaces\.com$ ]]; then
+	echo "witness backup Spaces destination is invalid" >&2
+	exit 1
+fi
+for secret in "${s3_access_key}" "${s3_secret_key}" "${spaces_access_key}" "${spaces_secret_key}"; do
+	if [[ -z ${secret} || ${secret} == *$'\n'* || ${secret} == *$'\r'* ]]; then
+		echo "witness backup writer credential is invalid" >&2
+		exit 1
+	fi
+done
+
+listed_fingerprints=$(gpg --homedir "${gpg_home}" --batch --with-colons --fingerprint "${recipient}" \
+	| awk -F: '$1 == "fpr" { print $10 }')
+if [[ $(printf '%s\n' "${listed_fingerprints}" | grep -c "^${recipient}$") != 1 ]]; then
+	echo "witness backup recipient is not pinned exactly once" >&2
+	exit 1
+fi
+
+install -d -o 0 -g 0 -m 0700 "${runtime_directory}"
+exec 9>"${runtime_directory}/upload.lock"
+if ! flock --nonblock 9; then
+	echo "witness backup upload is already running" >&2
+	exit 1
+fi
+
+timestamp=$(date --utc +%Y%m%dT%H%M%SZ)
+nonce=$(openssl rand -hex 8)
+archive=${runtime_directory}/${witness_id}-${timestamp}-${nonce}.tar
+ciphertext=${archive}.gpg
+aws_credentials=${runtime_directory}/aws-credentials-${nonce}
+cleanup() {
+	rm -f "${archive}" "${ciphertext}" "${aws_credentials}"
+}
+trap cleanup EXIT HUP INT TERM
+umask 077
+
+absolutejs-evidence-witness-backup-create "${archive}"
+gpg --homedir "${gpg_home}" --batch --yes --trust-model always --encrypt \
+	--recipient "${recipient}" --output "${ciphertext}" "${archive}"
+rm -f "${archive}"
+ciphertext_digest=$(sha256sum "${ciphertext}" | cut -d ' ' -f 1)
+object_name=${witness_id}-${timestamp}-${nonce}.tar.gpg
+
+write_aws_credentials() {
+	local access_key=$1
+	local secret_key=$2
+	printf '[absolutejs-witness-backup]\naws_access_key_id=%s\naws_secret_access_key=%s\n' \
+		"${access_key}" "${secret_key}" >"${aws_credentials}"
+	chmod 0600 "${aws_credentials}"
+}
+
+write_aws_credentials "${s3_access_key}" "${s3_secret_key}"
+AWS_CONFIG_FILE=/dev/null \
+	AWS_SHARED_CREDENTIALS_FILE="${aws_credentials}" \
+	AWS_PROFILE=absolutejs-witness-backup \
+	AWS_EC2_METADATA_DISABLED=true \
+	AWS_MAX_ATTEMPTS=3 \
+	AWS_RETRY_MODE=standard \
+	AWS_REGION="${s3_region}" \
+	aws s3api put-object \
+		--no-cli-pager \
+		--cli-connect-timeout 30 \
+		--cli-read-timeout 60 \
+		--bucket "${s3_bucket}" \
+		--key "${s3_prefix}${object_name}" \
+		--body "${ciphertext}" \
+		--expected-bucket-owner "${s3_owner}" \
+		--checksum-algorithm SHA256 \
+		--content-type application/octet-stream \
+		--metadata "contract=absolutejs.vulnerability-evidence-witness-backup/v1,witness-id=${witness_id},ciphertext-sha256=${ciphertext_digest}" \
+		>/dev/null
+
+write_aws_credentials "${spaces_access_key}" "${spaces_secret_key}"
+AWS_CONFIG_FILE=/dev/null \
+	AWS_SHARED_CREDENTIALS_FILE="${aws_credentials}" \
+	AWS_PROFILE=absolutejs-witness-backup \
+	AWS_EC2_METADATA_DISABLED=true \
+	AWS_MAX_ATTEMPTS=3 \
+	AWS_RETRY_MODE=standard \
+	AWS_REGION="${spaces_region}" \
+	aws s3api put-object \
+		--no-cli-pager \
+		--cli-connect-timeout 30 \
+		--cli-read-timeout 60 \
+		--endpoint-url "${spaces_endpoint}" \
+		--bucket "${spaces_bucket}" \
+		--key "${spaces_prefix}${object_name}" \
+		--body "${ciphertext}" \
+		--content-type application/octet-stream \
+		--metadata "contract=absolutejs.vulnerability-evidence-witness-backup/v1,witness-id=${witness_id},ciphertext-sha256=${ciphertext_digest}" \
+		>/dev/null
+
+echo "witness-encrypted-backup-uploaded ${object_name} sha256:${ciphertext_digest}"

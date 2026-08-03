@@ -1,0 +1,36 @@
+[Unit]
+Description=Create and independently upload an encrypted AbsoluteJS evidence witness backup
+After=network-online.target absolutejs-evidence-witness.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+LoadCredentialEncrypted=absolutejs.witness.backup-upload.env
+Environment=EVIDENCE_WITNESS_BACKUP_CONFIGURATION=/etc/absolutejs/evidence-witness/backup.env
+ExecStart=/usr/local/sbin/absolutejs-evidence-witness-backup-upload
+UMask=0077
+RuntimeDirectory=absolutejs-evidence-witness-backup
+RuntimeDirectoryMode=0700
+NoNewPrivileges=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadWritePaths=/run/absolutejs-evidence-witness-backup
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

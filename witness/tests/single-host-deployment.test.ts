@@ -40,6 +40,18 @@ const restoreVerify = await Bun.file(
 const backupRecord = await Bun.file(
   new URL("deploy/single-host/absolutejs-evidence-witness-backup-record", root),
 ).text();
+const backupUpload = await Bun.file(
+  new URL("deploy/single-host/absolutejs-evidence-witness-backup-upload", root),
+).text();
+const backupService = await Bun.file(
+  new URL(
+    "deploy/single-host/absolutejs-evidence-witness-backup.service",
+    root,
+  ),
+).text();
+const backupTimer = await Bun.file(
+  new URL("deploy/single-host/absolutejs-evidence-witness-backup.timer", root),
+).text();
 const guide = await Bun.file(
   new URL("deploy/single-host/README.md", root),
 ).text();
@@ -166,5 +178,30 @@ describe("single-host witness deployment", () => {
     );
     expect(backupRecord).toContain('docker start "${witness_container}"');
     expect(backupRecord).not.toContain("--publish");
+  });
+
+  test("encrypts automated backups to fixed independent destinations", () => {
+    expect(backupUpload).toContain("WITNESS_BACKUP_RECIPIENT_FINGERPRINT");
+    expect(backupUpload).toContain("AWS_EC2_METADATA_DISABLED=true");
+    expect(backupUpload).toContain("--expected-bucket-owner");
+    expect(backupUpload).toContain("--checksum-algorithm SHA256");
+    expect(backupUpload).toContain(
+      "^https://[a-z0-9-]+\\.digitaloceanspaces\\.com$",
+    );
+    expect(backupUpload.match(/aws s3api put-object/gu)).toHaveLength(2);
+    expect(backupUpload.indexOf('rm -f "${archive}"')).toBeLessThan(
+      backupUpload.indexOf("aws s3api put-object"),
+    );
+    expect(backupService).toContain(
+      "LoadCredentialEncrypted=absolutejs.witness.backup-upload.env",
+    );
+    expect(backupService).toContain("ProtectSystem=strict");
+    expect(backupService).toContain(
+      "RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6",
+    );
+    expect(backupTimer).toContain("OnCalendar=*-*-* 01,07,13,19:00:00 UTC");
+    expect(backupTimer).toContain("RandomizedDelaySec=15m");
+    expect(guide).toMatch(/S3 bucket with Object Lock\s+default retention/u);
+    expect(guide).toContain("DigitalOcean Spaces bucket with versioning");
   });
 });
