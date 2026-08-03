@@ -54,6 +54,18 @@ describe("Witness container supply chain", () => {
   });
 
   test("retains an SBOM and immediately verified keyless image evidence", () => {
+    const validation = workflow.slice(
+      workflow.indexOf("  validate:"),
+      workflow.indexOf("  publish:"),
+    );
+    const publication = workflow.slice(workflow.indexOf("  publish:"));
+
+    for (const job of [validation, publication]) {
+      expect(job.indexOf("Prepare the evidence directory")).toBeGreaterThan(-1);
+      expect(job.indexOf("Generate the SPDX JSON SBOM")).toBeGreaterThan(
+        job.indexOf("Prepare the evidence directory"),
+      );
+    }
     expect(workflow).toContain("id-token: write");
     expect(workflow).toContain("format: spdx-json");
     expect(workflow).toContain(

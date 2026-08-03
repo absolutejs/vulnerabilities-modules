@@ -64,7 +64,14 @@ if [[ $(docker inspect --format '{{.Config.Image}}' "${witness_container}") != "
 fi
 
 staging=$(mktemp -d /run/absolutejs-evidence-witness-backup.XXXXXX)
-trap 'rm -rf "${staging}"' EXIT HUP INT TERM
+stopped=0
+cleanup() {
+	rm -rf "${staging}"
+	if [[ ${stopped} == 1 ]]; then
+		docker start "${witness_container}" >/dev/null 2>&1 || true
+	fi
+}
+trap cleanup EXIT HUP INT TERM
 chmod 0711 "${staging}"
 
 docker exec "${postgres_container}" sh -ceu \
@@ -76,6 +83,8 @@ if [[ ! ${database_rows} =~ ^[0-9]+$ ]]; then
 	echo "witness database row count is invalid" >&2
 	exit 1
 fi
+docker stop --time 30 "${witness_container}" >/dev/null
+stopped=1
 docker cp \
 	"${witness_container}:/var/lib/absolutejs/secrets.enc.json" \
 	"${staging}/signing-state.enc.json" >/dev/null
@@ -83,11 +92,29 @@ chown 65532:65532 "${staging}/signing-state.enc.json"
 chmod 0600 "${staging}/database.dump" "${staging}/signing-state.enc.json"
 
 docker run --rm --network none --user 65532:65532 \
+	--memory 128m --memory-swap 128m --pids-limit 32 --cpus 0.5 \
 	--env-file "${runtime_file}" \
 	--env EVIDENCE_WITNESS_SECRETS_PATH=/backup/signing-state.enc.json \
 	--entrypoint bun \
 	--mount "type=bind,source=${staging},target=/backup,readonly" \
 	"${witness_image}" dist/backupCli.js registry >"${staging}/registry.json"
+docker start "${witness_container}" >/dev/null
+healthy=0
+for _ in {1..30}; do
+	if docker exec "${witness_container}" wget --quiet --output-document=/dev/null \
+		http://127.0.0.1:3443/health >/dev/null 2>&1 || \
+		docker exec "${witness_container}" wget --quiet --no-check-certificate \
+			--output-document=/dev/null https://127.0.0.1:3443/health >/dev/null 2>&1; then
+		healthy=1
+		break
+	fi
+	sleep 1
+done
+if [[ ${healthy} != 1 ]]; then
+	echo "witness did not become healthy after backup snapshot" >&2
+	exit 1
+fi
+stopped=0
 chown 0:0 "${staging}/registry.json"
 chmod 0600 "${staging}/registry.json"
 

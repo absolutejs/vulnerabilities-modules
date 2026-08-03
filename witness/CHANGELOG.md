@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.3 - 2026-08-03
+
+- Snapshot signing state while the witness is briefly stopped, guarantee a
+  restart on backup failure, and require it to return healthy before upload.
+- Bound disposable backup CLI containers to 128 MiB memory and swap, 32
+  processes, and half a CPU so routine recovery work cannot starve the live
+  single-host deployment.
+- Create the SBOM evidence directory in both validation and publication jobs
+  so supply-chain scanning cannot be skipped by an output-path failure.
+
 ## 0.7.2 - 2026-08-03
 
 - Use a Bash-compatible integer literal for the host backup-verification
