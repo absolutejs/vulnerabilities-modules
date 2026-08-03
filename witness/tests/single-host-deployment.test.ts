@@ -58,6 +58,13 @@ describe("single-host witness deployment", () => {
     expect(firewall).not.toContain("--dports 80,443 -j RETURN");
   });
 
+  test("uses the image-local HTTPS client for portable health checks", () => {
+    expect(compose).toContain("- wget");
+    expect(compose).toContain("- --no-check-certificate");
+    expect(compose).toContain("- https://127.0.0.1:3443/health");
+    expect(compose).not.toContain("NODE_TLS_REJECT_UNAUTHORIZED");
+  });
+
   test("fails closed without a root-only runtime secret file", () => {
     expect(preflight).toContain("/run/*");
     expect(preflight).toContain("root:root:600");
