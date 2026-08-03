@@ -1,0 +1,20 @@
+[Unit]
+Description=AbsoluteJS independent evidence witness
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/absolutejs/evidence-witness/deployment.env
+WorkingDirectory=/opt/absolutejs/evidence-witness
+ExecStartPre=/usr/local/sbin/absolutejs-evidence-witness-preflight ${WITNESS_RUNTIME_ENV_FILE} ${WITNESS_TLS_DIRECTORY} ${EVIDENCE_WITNESS_IMAGE}
+ExecStartPre=/usr/local/sbin/absolutejs-evidence-witness-firewall
+ExecStart=/usr/bin/docker compose --env-file /etc/absolutejs/evidence-witness/deployment.env up --detach --wait --no-build --pull never
+ExecStop=/usr/bin/docker compose --env-file /etc/absolutejs/evidence-witness/deployment.env down
+TimeoutStartSec=180
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

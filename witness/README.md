@@ -19,30 +19,30 @@ The HTTP service has three routes:
 
 ```ts
 import {
-	EVIDENCE_WITNESS_REQUEST_CONTRACT,
-	createEvidenceWitnessHttpHandler,
-	createEvidenceWitnessService,
-	createEvidenceWitnessSigningState
-} from '@absolutejs/vulnerabilities-witness';
+  EVIDENCE_WITNESS_REQUEST_CONTRACT,
+  createEvidenceWitnessHttpHandler,
+  createEvidenceWitnessService,
+  createEvidenceWitnessSigningState,
+} from "@absolutejs/vulnerabilities-witness";
 import {
-	createPostgresEvidenceWitnessStore,
-	ensurePostgresEvidenceWitnessSchema
-} from '@absolutejs/vulnerabilities-witness/postgres';
+  createPostgresEvidenceWitnessStore,
+  ensurePostgresEvidenceWitnessSchema,
+} from "@absolutejs/vulnerabilities-witness/postgres";
 
 const signingState = createEvidenceWitnessSigningState();
 await ensurePostgresEvidenceWitnessSchema(sql);
 
 const service = createEvidenceWitnessService({
-	loadSigningState,
-	origin: 'https://witness.example',
-	signingState,
-	store: createPostgresEvidenceWitnessStore(sql),
-	storeSigningState
+  loadSigningState,
+  origin: "https://witness.example",
+  signingState,
+  store: createPostgresEvidenceWitnessStore(sql),
+  storeSigningState,
 });
 
 const fetch = createEvidenceWitnessHttpHandler({
-	authenticate: async (token) => subjectsByToken.get(token) ?? null,
-	service
+  authenticate: async (token) => subjectsByToken.get(token) ?? null,
+  service,
 });
 
 Bun.serve({ fetch, port: 3000 });
@@ -70,6 +70,9 @@ observations and accepts these deployment secrets:
   file
 - `EVIDENCE_WITNESS_KEY_MAX_AGE_MS`, defaulting to 90 days
 - `EVIDENCE_WITNESS_MAINTENANCE_INTERVAL_MS`, defaulting to one hour
+- `EVIDENCE_WITNESS_TLS_CERT_FILE` and `EVIDENCE_WITNESS_TLS_KEY_FILE`, an
+  optional pair enabling native TLS for deployments without a terminating
+  proxy
 
 The authenticated `GET /v1/status` endpoint reports the verified key registry
 and optional backup restoration evidence. Store

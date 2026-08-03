@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.5 - 2026-08-02
+
+- Add a reusable digest-pinned single-host deployment contract with native
+  TLS, runtime-only secret injection, private PostgreSQL, and explicit
+  metadata/private-network egress denial.
+
 ## 0.4.4 - 2026-08-01
 
 - Publish only full-revision witness container tags after the complete package

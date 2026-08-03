@@ -1,0 +1,112 @@
+name: absolutejs-evidence-witness
+
+services:
+  postgres:
+    image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    pull_policy: never
+    restart: unless-stopped
+    env_file: ${WITNESS_RUNTIME_ENV_FILE:?runtime secret file is required}
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /run/postgresql:rw,nosuid,noexec,nodev,size=16m
+      - /tmp:rw,nosuid,noexec,nodev,size=32m
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      backend:
+        ipv4_address: 172.30.81.2
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  witness-secrets-init:
+    image: ${EVIDENCE_WITNESS_IMAGE:?immutable witness image is required}
+    pull_policy: never
+    user: "0:0"
+    entrypoint:
+      - sh
+      - -ec
+      - chown 1000:1000 /var/lib/absolutejs && chmod 0700 /var/lib/absolutejs
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    volumes:
+      - witness-secrets:/var/lib/absolutejs
+
+  witness:
+    image: ${EVIDENCE_WITNESS_IMAGE:?immutable witness image is required}
+    pull_policy: never
+    restart: unless-stopped
+    user: "1000:1000"
+    env_file: ${WITNESS_RUNTIME_ENV_FILE:?runtime secret file is required}
+    environment:
+      EVIDENCE_WITNESS_ORIGIN: ${WITNESS_ORIGIN:?HTTPS witness origin is required}
+      EVIDENCE_WITNESS_SECRETS_PATH: /var/lib/absolutejs/secrets.enc.json
+      EVIDENCE_WITNESS_TLS_CERT_FILE: /run/absolutejs/tls/tls.crt
+      EVIDENCE_WITNESS_TLS_KEY_FILE: /run/absolutejs/tls/tls.key
+      PORT: "3443"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,noexec,nodev,size=32m
+    volumes:
+      - ${WITNESS_TLS_DIRECTORY:?runtime TLS directory is required}:/run/absolutejs/tls:ro
+      - witness-secrets:/var/lib/absolutejs
+    networks:
+      backend:
+        ipv4_address: 172.30.81.3
+      ingress:
+        ipv4_address: 172.30.82.2
+    ports:
+      - 443:3443
+    depends_on:
+      postgres:
+        condition: service_healthy
+      witness-secrets-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - bun
+        - -e
+        - "process.env.NODE_TLS_REJECT_UNAUTHORIZED='0';const r=await fetch('https://127.0.0.1:3443/health');process.exit(r.ok?0:1)"
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+networks:
+  backend:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.81.0/24
+  ingress:
+    ipam:
+      config:
+        - subnet: 172.30.82.0/24
+volumes:
+  postgres-data:
+  witness-secrets:

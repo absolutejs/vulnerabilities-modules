@@ -139,9 +139,20 @@ jobs:
           output-format: json
           severity-cutoff: high
 
+      - name: Fail on high or critical PostgreSQL support-image vulnerabilities
+        id: postgres_scan
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+          fail-build: true
+          output-format: json
+          severity-cutoff: high
+
       - name: Stage the vulnerability report
         if: always()
-        run: cp "${{ steps.scan.outputs.json }}" evidence/grype.json
+        run: |
+          cp "${{ steps.scan.outputs.json }}" evidence/grype.json
+          cp "${{ steps.postgres_scan.outputs.json }}" evidence/postgres-grype.json
 
       - name: Retain failed vulnerability evidence
         if: failure()

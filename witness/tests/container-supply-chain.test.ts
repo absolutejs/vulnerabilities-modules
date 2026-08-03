@@ -10,6 +10,9 @@ const deploymentGuide = await Bun.file(
 const dockerfile = await Bun.file(
   new URL("witness/Dockerfile", repositoryRoot),
 ).text();
+const singleHostCompose = await Bun.file(
+  new URL("witness/deploy/single-host/compose.yml", repositoryRoot),
+).text();
 
 const actionReferences = [
   ...workflow.matchAll(/^\s*uses:\s*([^\s#]+?)(?:\s+#.*)?$/gmu),
@@ -58,6 +61,17 @@ describe("Witness container supply chain", () => {
     );
     expect(workflow).toContain("attestations.json");
     expect(workflow).toContain("image-reference.txt");
+  });
+
+  test("scans the exact support image shipped by the host contract", () => {
+    const [postgresReference] =
+      singleHostCompose.match(/postgres@sha256:[0-9a-f]{64}/u) ?? [];
+
+    expect(postgresReference).toBeTruthy();
+    expect(workflow).toContain(`image: ${postgresReference}`);
+    expect(workflow).toContain("id: postgres_scan");
+    expect(workflow).toContain("severity-cutoff: high");
+    expect(workflow).toContain("evidence/postgres-grype.json");
   });
 
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {

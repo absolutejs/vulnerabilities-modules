@@ -10,6 +10,7 @@ import {
   createPostgresEvidenceWitnessStore,
   ensurePostgresEvidenceWitnessSchema,
 } from "./postgres";
+import { evidenceWitnessTlsFilePaths } from "./serverTransport";
 
 const required = (name: string) => {
   const value = process.env[name]?.trim();
@@ -91,7 +92,14 @@ const port = Number(process.env.PORT ?? "3000");
 if (!Number.isSafeInteger(port) || port < 1 || port > 65_535)
   throw new Error("PORT must be a valid TCP port");
 
-Bun.serve({ fetch: handler, port });
+const tlsPaths = evidenceWitnessTlsFilePaths();
+Bun.serve({
+  fetch: handler,
+  port,
+  ...(tlsPaths
+    ? { tls: { cert: Bun.file(tlsPaths.cert), key: Bun.file(tlsPaths.key) } }
+    : {}),
+});
 
 const dayMs = 86_400_000;
 const maxKeyAgeMs = positiveInteger(

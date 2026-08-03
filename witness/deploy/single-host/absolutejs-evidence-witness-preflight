@@ -1,0 +1,57 @@
+#!/bin/sh
+set -eu
+
+runtime_file=${1:-}
+tls_directory=${2:-}
+witness_image=${3:-}
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must be below /run" >&2
+		exit 1
+		;;
+esac
+
+if [ ! -f "${runtime_file}" ]; then
+	echo "witness runtime environment is absent" >&2
+	exit 1
+fi
+if [ "$(stat -c %U:%G:%a "${runtime_file}")" != root:root:600 ]; then
+	echo "witness runtime environment must be root:root 0600" >&2
+	exit 1
+fi
+
+case "${tls_directory}" in
+	/run/*) ;;
+	*)
+		echo "witness TLS directory must be below /run" >&2
+		exit 1
+		;;
+esac
+if [ "$(stat -c %u:%g:%a "${tls_directory}/tls.crt")" != 0:0:644 ]; then
+	echo "witness TLS certificate must be root:root 0644" >&2
+	exit 1
+fi
+if [ "$(stat -c %u:%g:%a "${tls_directory}/tls.key")" != 1000:1000:400 ]; then
+	echo "witness TLS key must be 1000:1000 0400" >&2
+	exit 1
+fi
+
+case "${witness_image}" in
+	*@sha256:*) ;;
+	*)
+		echo "witness image must use an immutable sha256 digest" >&2
+		exit 1
+		;;
+esac
+digest=${witness_image##*@sha256:}
+if [ "${#digest}" -ne 64 ]; then
+	echo "witness image digest is invalid" >&2
+	exit 1
+fi
+case "${digest}" in
+	*[!0-9a-f]*)
+		echo "witness image digest is invalid" >&2
+		exit 1
+		;;
+esac

@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+chain=ABSOLUTEJS-WITNESS
+
+iptables -N "${chain}" 2>/dev/null || true
+iptables -F "${chain}"
+iptables -C DOCKER-USER -j "${chain}" 2>/dev/null || \
+	iptables -I DOCKER-USER 1 -j "${chain}"
+
+# Preserve same-network service traffic and established replies.
+iptables -A "${chain}" -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+iptables -A "${chain}" -s 172.30.81.0/24 -d 172.30.81.0/24 -j RETURN
+
+# No backend container may initiate traffic outside its private network.
+iptables -A "${chain}" -s 172.30.81.0/24 -j REJECT
+
+# The ingress interface exists only for DNAT. New outbound flows are denied;
+# replies to accepted HTTPS connections matched ESTABLISHED above.
+iptables -A "${chain}" -s 172.30.82.0/24 -j REJECT
+
+iptables -A "${chain}" -j RETURN
