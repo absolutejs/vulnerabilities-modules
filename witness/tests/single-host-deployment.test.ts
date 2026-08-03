@@ -28,6 +28,18 @@ const runtimeCleanup = await Bun.file(
     root,
   ),
 ).text();
+const backupCreate = await Bun.file(
+  new URL("deploy/single-host/absolutejs-evidence-witness-backup-create", root),
+).text();
+const restoreVerify = await Bun.file(
+  new URL(
+    "deploy/single-host/absolutejs-evidence-witness-restore-verify",
+    root,
+  ),
+).text();
+const backupRecord = await Bun.file(
+  new URL("deploy/single-host/absolutejs-evidence-witness-backup-record", root),
+).text();
 const guide = await Bun.file(
   new URL("deploy/single-host/README.md", root),
 ).text();
@@ -130,5 +142,29 @@ describe("single-host witness deployment", () => {
     expect(guide).toContain(
       "does not protect against that host's root operator",
     );
+  });
+
+  test("creates runtime-only backups and verifies restores without external egress", () => {
+    expect(backupCreate).toContain(
+      "witness plaintext backup archive must remain below /run",
+    );
+    expect(backupCreate).toContain("pg_dump --format=custom");
+    expect(backupCreate).toContain("secrets.enc.json");
+    expect(backupCreate).toContain("--network none");
+    expect(backupCreate).toContain("dist/backupCli.js registry");
+    expect(restoreVerify).toContain("docker network create --internal");
+    expect(restoreVerify).toContain("pg_restore --no-owner --no-privileges");
+    expect(restoreVerify).toContain("sha256sum --check --status");
+    expect(restoreVerify).toContain('cmp "${staging}/registry.json"');
+    expect(restoreVerify).toContain(
+      "absolutejs.vulnerability-evidence-witness-backup-verification/v1",
+    );
+    expect(backupRecord).toContain("--network none");
+    expect(backupRecord).toContain("dist/backupCli.js record-verification");
+    expect(backupRecord).toContain(
+      'docker stop --time 30 "${witness_container}"',
+    );
+    expect(backupRecord).toContain('docker start "${witness_container}"');
+    expect(backupRecord).not.toContain("--publish");
   });
 });

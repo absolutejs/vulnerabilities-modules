@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-witness",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Independent durable transparency witness with rollback, equivocation, key-rotation, and HTTP service primitives for AbsoluteJS vulnerability evidence.",
   "type": "module",
   "license": "BSL-1.1",
@@ -18,7 +18,8 @@
     "access": "public"
   },
   "bin": {
-    "absolute-vulnerability-witness": "dist/server.js"
+    "absolute-vulnerability-witness": "dist/server.js",
+    "absolute-vulnerability-witness-backup": "dist/backupCli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -50,7 +51,7 @@
     "format": "prettier --write \"./**/*.{ts,json,md}\"",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "build": "rm -rf dist && bun build --root src src/index.ts src/postgres.ts src/server.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/secrets --external @absolutejs/vulnerabilities --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
+    "build": "rm -rf dist && bun build --root src src/index.ts src/postgres.ts src/server.ts src/backupCli.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/secrets --external @absolutejs/vulnerabilities --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
     "verify-package": "absolute-manifest verify-package",
     "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build && bun run verify-package --artifacts"
   },

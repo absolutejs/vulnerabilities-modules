@@ -39,6 +39,12 @@ install -D -m 0755 absolutejs-evidence-witness-runtime-materialize \
   /usr/local/sbin/absolutejs-evidence-witness-runtime-materialize
 install -D -m 0755 absolutejs-evidence-witness-runtime-cleanup \
   /usr/local/sbin/absolutejs-evidence-witness-runtime-cleanup
+install -D -m 0755 absolutejs-evidence-witness-backup-create \
+  /usr/local/sbin/absolutejs-evidence-witness-backup-create
+install -D -m 0755 absolutejs-evidence-witness-restore-verify \
+  /usr/local/sbin/absolutejs-evidence-witness-restore-verify
+install -D -m 0755 absolutejs-evidence-witness-backup-record \
+  /usr/local/sbin/absolutejs-evidence-witness-backup-record
 install -D -m 0644 absolutejs-evidence-witness.service \
   /etc/systemd/system/absolutejs-evidence-witness.service
 systemctl daemon-reload
@@ -118,3 +124,49 @@ a full disk snapshot containing the systemd host key. A TPM-backed credential
 or provider-native workload identity is stronger where available. This mode
 must therefore use a different host key, administrative account, SSH identity,
 and encrypted credential set for every quorum member.
+
+## Encrypted backups and restore evidence
+
+The host helpers create and verify a portable backup containing a PostgreSQL
+custom-format dump, the already-encrypted signing-state file, its derived
+public key registry, and a digest manifest. The plaintext archive is permitted
+only below `/run`; encrypt it to an offline public-key recipient before upload
+and remove the runtime archive immediately afterward. Keep each witness's
+encryption recipient and object-store writer credential distinct.
+
+```sh
+absolutejs-evidence-witness-backup-create \
+  /run/absolutejs-evidence-witness-backup.tar
+gpg --batch --yes --trust-model always --encrypt \
+  --recipient <offline-backup-key-fingerprint> \
+  --output /run/absolutejs-evidence-witness-backup.tar.gpg \
+  /run/absolutejs-evidence-witness-backup.tar
+rm -f /run/absolutejs-evidence-witness-backup.tar
+```
+
+Upload only the encrypted `.gpg` object through a prefix-scoped writer that
+cannot read or delete backup objects. Prefer immutable object retention and a
+second versioned copy in another provider. The offline private key must not be
+installed on a witness for routine backup creation.
+
+For a restore drill, decrypt on a trusted operator machine and stream the
+plaintext archive over SSH directly into a root-owned `0600` file below
+`/run`. Then run the no-egress disposable restore and record its validated JSON
+result back into the live encrypted secret adapter:
+
+```sh
+absolutejs-evidence-witness-restore-verify \
+  /run/absolutejs-evidence-witness-backup.tar \
+  | absolutejs-evidence-witness-backup-record
+rm -f /run/absolutejs-evidence-witness-backup.tar
+```
+
+The restore helper verifies every artifact digest, restores the dump into a
+new Docker volume, starts the restored witness on an internal-only Docker
+network, and compares its public key registry byte-for-byte with the registry
+derived at backup time. All disposable containers, networks, volumes, and
+plaintext runtime artifacts are removed on exit. A successful record updates
+the authenticated `/v1/status` backup posture after briefly stopping that one
+witness, serializing the encrypted-file update against key rotation, and
+waiting for the same container to become healthy again. Run quorum-member
+drills sequentially and verify the other member before each recording step.

@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $(id -u) != 0 ]]; then
+	echo "witness backup creation must run as root" >&2
+	exit 1
+fi
+
+archive=${1:?runtime backup archive path is required}
+case "${archive}" in
+	/run/*) ;;
+	*)
+		echo "witness plaintext backup archive must remain below /run" >&2
+		exit 1
+		;;
+esac
+if [[ -e ${archive} || -L ${archive} ]]; then
+	echo "witness backup archive already exists" >&2
+	exit 1
+fi
+
+deployment_environment=${EVIDENCE_WITNESS_DEPLOYMENT_ENVIRONMENT:-/etc/absolutejs/evidence-witness/deployment.env}
+witness_container=${EVIDENCE_WITNESS_CONTAINER:-absolutejs-evidence-witness-witness-1}
+postgres_container=${EVIDENCE_WITNESS_POSTGRES_CONTAINER:-absolutejs-evidence-witness-postgres-1}
+
+read_setting() {
+	local name=$1
+	local count
+	local value
+	count=$(grep -c "^${name}=" "${deployment_environment}")
+	if [[ ${count} != 1 ]]; then
+		echo "witness deployment ${name} setting is missing or duplicated" >&2
+		exit 1
+	fi
+	value=$(grep "^${name}=" "${deployment_environment}")
+	printf '%s' "${value#*=}"
+}
+
+runtime_file=$(read_setting WITNESS_RUNTIME_ENV_FILE)
+witness_image=$(read_setting EVIDENCE_WITNESS_IMAGE)
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must remain below /run" >&2
+		exit 1
+		;;
+esac
+case "${witness_image}" in
+	*@sha256:* | sha256:*) ;;
+	*)
+		echo "witness image must use an immutable digest" >&2
+		exit 1
+		;;
+esac
+
+if [[ $(stat -c %U:%G:%a "${runtime_file}") != root:root:600 ]]; then
+	echo "witness runtime environment mode is unsafe" >&2
+	exit 1
+fi
+docker inspect "${witness_container}" "${postgres_container}" >/dev/null
+if [[ $(docker inspect --format '{{.Config.Image}}' "${witness_container}") != "${witness_image}" ]]; then
+	echo "running witness image does not match deployment" >&2
+	exit 1
+fi
+
+staging=$(mktemp -d /run/absolutejs-evidence-witness-backup.XXXXXX)
+trap 'rm -rf "${staging}"' EXIT HUP INT TERM
+chmod 0711 "${staging}"
+
+docker exec "${postgres_container}" sh -ceu \
+	'exec pg_dump --format=custom --no-owner --no-privileges --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"' \
+	>"${staging}/database.dump"
+database_rows=$(docker exec "${postgres_container}" sh -ceu \
+	'exec psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=1 --command "SELECT count(*) FROM absolute_vulnerability_evidence_witness_observations;"')
+if [[ ! ${database_rows} =~ ^[0-9]+$ ]]; then
+	echo "witness database row count is invalid" >&2
+	exit 1
+fi
+docker cp \
+	"${witness_container}:/var/lib/absolutejs/secrets.enc.json" \
+	"${staging}/signing-state.enc.json" >/dev/null
+chown 65532:65532 "${staging}/signing-state.enc.json"
+chmod 0600 "${staging}/database.dump" "${staging}/signing-state.enc.json"
+
+docker run --rm --network none --user 65532:65532 \
+	--env-file "${runtime_file}" \
+	--env EVIDENCE_WITNESS_SECRETS_PATH=/backup/signing-state.enc.json \
+	--entrypoint bun \
+	--mount "type=bind,source=${staging},target=/backup,readonly" \
+	"${witness_image}" dist/backupCli.js registry >"${staging}/registry.json"
+chown 0:0 "${staging}/registry.json"
+chmod 0600 "${staging}/registry.json"
+
+database_digest=$(sha256sum "${staging}/database.dump" | cut -d ' ' -f 1)
+signing_digest=$(sha256sum "${staging}/signing-state.enc.json" | cut -d ' ' -f 1)
+registry_digest=$(sha256sum "${staging}/registry.json" | cut -d ' ' -f 1)
+created_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
+printf '%s\n' \
+	"contract=absolutejs.vulnerability-evidence-witness-backup/v1" \
+	"created_at=${created_at}" \
+	"database_sha256=${database_digest}" \
+	"database_rows=${database_rows}" \
+	"signing_state_sha256=${signing_digest}" \
+	"registry_sha256=${registry_digest}" \
+	>"${staging}/manifest"
+chmod 0600 "${staging}/manifest"
+
+umask 077
+tar --create --file "${archive}" --directory "${staging}" \
+	manifest database.dump signing-state.enc.json registry.json
+chmod 0600 "${archive}"
+echo witness-backup-created >&2

@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $(id -u) != 0 ]]; then
+	echo "witness restore verification must run as root" >&2
+	exit 1
+fi
+
+archive=${1:?decrypted runtime backup archive path is required}
+case "${archive}" in
+	/run/*) ;;
+	*)
+		echo "witness decrypted backup archive must remain below /run" >&2
+		exit 1
+		;;
+esac
+if [[ -L ${archive} || ! -f ${archive} || $(stat -c %U:%G:%a "${archive}") != root:root:600 ]]; then
+	echo "witness decrypted backup archive mode is unsafe" >&2
+	exit 1
+fi
+
+deployment_environment=${EVIDENCE_WITNESS_DEPLOYMENT_ENVIRONMENT:-/etc/absolutejs/evidence-witness/deployment.env}
+compose_file=${EVIDENCE_WITNESS_COMPOSE_FILE:-/opt/absolutejs/evidence-witness/compose.yml}
+suffix="${RANDOM}-$$"
+postgres_container="absolutejs-witness-restore-postgres-${suffix}"
+witness_container="absolutejs-witness-restore-service-${suffix}"
+network="absolutejs-witness-restore-${suffix}"
+volume="absolutejs-witness-restore-${suffix}"
+staging=$(mktemp -d /run/absolutejs-evidence-witness-restore.XXXXXX)
+
+cleanup() {
+	docker rm --force "${witness_container}" "${postgres_container}" >/dev/null 2>&1 || true
+	docker volume rm "${volume}" >/dev/null 2>&1 || true
+	docker network rm "${network}" >/dev/null 2>&1 || true
+	rm -rf "${staging}"
+}
+trap cleanup EXIT HUP INT TERM
+chmod 0711 "${staging}"
+
+entries=$(tar --list --file "${archive}" | sort)
+expected=$(printf '%s\n' database.dump manifest registry.json signing-state.enc.json | sort)
+if [[ ${entries} != "${expected}" ]]; then
+	echo "witness backup archive contains unexpected entries" >&2
+	exit 1
+fi
+tar --extract --file "${archive}" --directory "${staging}" \
+	--no-same-owner --no-same-permissions \
+	manifest database.dump signing-state.enc.json registry.json
+for artifact in manifest database.dump signing-state.enc.json registry.json; do
+	if [[ -L ${staging}/${artifact} || ! -f ${staging}/${artifact} ]]; then
+		echo "witness backup artifact is unsafe" >&2
+		exit 1
+	fi
+done
+chmod 0600 "${staging}"/*
+
+read_manifest() {
+	local name=$1
+	local count
+	local value
+	count=$(grep -c "^${name}=" "${staging}/manifest")
+	if [[ ${count} != 1 ]]; then
+		echo "witness backup manifest ${name} is missing or duplicated" >&2
+		exit 1
+	fi
+	value=$(grep "^${name}=" "${staging}/manifest")
+	printf '%s' "${value#*=}"
+}
+
+if [[ $(read_manifest contract) != absolutejs.vulnerability-evidence-witness-backup/v1 ]]; then
+	echo "witness backup contract is unsupported" >&2
+	exit 1
+fi
+database_digest=$(read_manifest database_sha256)
+database_rows=$(read_manifest database_rows)
+signing_digest=$(read_manifest signing_state_sha256)
+registry_digest=$(read_manifest registry_sha256)
+for digest in "${database_digest}" "${signing_digest}" "${registry_digest}"; do
+	if [[ ! ${digest} =~ ^[a-f0-9]{64}$ ]]; then
+		echo "witness backup digest is invalid" >&2
+		exit 1
+	fi
+done
+if [[ ! ${database_rows} =~ ^[0-9]+$ ]]; then
+	echo "witness backup database row count is invalid" >&2
+	exit 1
+fi
+echo "${database_digest}  ${staging}/database.dump" | sha256sum --check --status
+echo "${signing_digest}  ${staging}/signing-state.enc.json" | sha256sum --check --status
+echo "${registry_digest}  ${staging}/registry.json" | sha256sum --check --status
+
+read_setting() {
+	local name=$1
+	local count
+	local value
+	count=$(grep -c "^${name}=" "${deployment_environment}")
+	if [[ ${count} != 1 ]]; then
+		echo "witness deployment ${name} setting is missing or duplicated" >&2
+		exit 1
+	fi
+	value=$(grep "^${name}=" "${deployment_environment}")
+	printf '%s' "${value#*=}"
+}
+
+runtime_file=$(read_setting WITNESS_RUNTIME_ENV_FILE)
+witness_image=$(read_setting EVIDENCE_WITNESS_IMAGE)
+postgres_image_lines=$(grep -E '^    image: postgres@sha256:[a-f0-9]{64}$' "${compose_file}" || true)
+if [[ $(printf '%s\n' "${postgres_image_lines}" | grep -c '^') != 1 || -z ${postgres_image_lines} ]]; then
+	echo "witness PostgreSQL image is missing or duplicated" >&2
+	exit 1
+fi
+postgres_image=${postgres_image_lines#    image: }
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must remain below /run" >&2
+		exit 1
+		;;
+esac
+if [[ $(stat -c %U:%G:%a "${runtime_file}") != root:root:600 ]]; then
+	echo "witness runtime environment mode is unsafe" >&2
+	exit 1
+fi
+
+docker image inspect "${witness_image}" "${postgres_image}" >/dev/null
+docker network create --internal "${network}" >/dev/null
+docker volume create "${volume}" >/dev/null
+docker run --detach --name "${postgres_container}" --pull never \
+	--network "${network}" --network-alias postgres \
+	--env-file "${runtime_file}" \
+	--mount "type=volume,source=${volume},target=/var/lib/postgresql" \
+	"${postgres_image}" >/dev/null
+
+for _ in {1..30}; do
+	if docker exec "${postgres_container}" sh -ceu \
+		'exec psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=1 --command "SELECT 1;"' \
+		>/dev/null 2>&1; then
+		break
+	fi
+	sleep 1
+done
+docker exec "${postgres_container}" sh -ceu \
+	'exec psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=1 --command "SELECT 1;"' \
+	>/dev/null
+docker exec --interactive "${postgres_container}" sh -ceu \
+	'exec pg_restore --no-owner --no-privileges --exit-on-error --username "$POSTGRES_USER" --dbname "$POSTGRES_DB"' \
+	<"${staging}/database.dump"
+database_restored_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
+docker exec "${postgres_container}" sh -ceu \
+	'exec psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=1 --command "SELECT count(*) FROM information_schema.columns WHERE table_schema = '\''public'\'' AND table_name = '\''absolute_vulnerability_evidence_witness_observations'\'';"' \
+	| grep -qx '6'
+restored_rows=$(docker exec "${postgres_container}" sh -ceu \
+	'exec psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --tuples-only --no-align --set ON_ERROR_STOP=1 --command "SELECT count(*) FROM absolute_vulnerability_evidence_witness_observations;"')
+if [[ ${restored_rows} != "${database_rows}" ]]; then
+	echo "witness restored database row count does not match backup" >&2
+	exit 1
+fi
+
+chown 65532:65532 "${staging}/signing-state.enc.json"
+docker run --detach --name "${witness_container}" --pull never \
+	--user 65532:65532 --network "${network}" --env-file "${runtime_file}" \
+	--env EVIDENCE_WITNESS_SECRETS_PATH=/restore/signing-state.enc.json \
+	--env EVIDENCE_WITNESS_TLS_CERT_FILE= \
+	--env EVIDENCE_WITNESS_TLS_KEY_FILE= \
+	--env PORT=3443 \
+	--mount "type=bind,source=${staging},target=/restore,readonly" \
+	"${witness_image}" >/dev/null
+
+for _ in {1..30}; do
+	if docker exec "${witness_container}" wget --quiet --output-document=/dev/null \
+		http://127.0.0.1:3443/health >/dev/null 2>&1; then
+		break
+	fi
+	sleep 1
+done
+docker exec "${witness_container}" wget --quiet --output-document="/tmp/registry.json" \
+	http://127.0.0.1:3443/v1/keys
+docker cp "${witness_container}:/tmp/registry.json" "${staging}/restored-registry.json" >/dev/null
+cmp "${staging}/registry.json" "${staging}/restored-registry.json"
+signing_restored_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
+verified_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
+
+printf '{"contract":"absolutejs.vulnerability-evidence-witness-backup-verification/v1","databaseArtifactDigest":"sha256:%s","databaseRestoredAt":"%s","signingStateArtifactDigest":"sha256:%s","signingStateRestoredAt":"%s","verifiedAt":"%s"}\n' \
+	"${database_digest}" "${database_restored_at}" "${signing_digest}" \
+	"${signing_restored_at}" "${verified_at}"

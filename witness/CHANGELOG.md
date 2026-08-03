@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 - 2026-08-03
+
+- Add runtime-only backup creation and disposable no-egress restore
+  verification for PostgreSQL observations and encrypted signing state.
+- Add a bounded backup CLI that derives the public key registry from a restored
+  encrypted state file and records validated restore evidence without exposing
+  secret material.
+
 ## 0.5.2 - 2026-08-03
 
 - Read systemd's generated `CREDENTIALS_DIRECTORY` inside the runtime

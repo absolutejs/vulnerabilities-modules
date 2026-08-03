@@ -156,6 +156,11 @@ jobs:
           EVIDENCE_WITNESS_TEST_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: bash witness/tests/witness-secret-ownership-migration.sh
 
+      - name: Verify disposable encrypted-state and database restore
+        env:
+          EVIDENCE_WITNESS_TEST_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: sudo --preserve-env=PATH,EVIDENCE_WITNESS_TEST_IMAGE bash witness/tests/witness-backup-restore.sh
+
       - name: Prepare the evidence directory
         run: mkdir -p evidence
 

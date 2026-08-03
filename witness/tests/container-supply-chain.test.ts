@@ -92,6 +92,19 @@ describe("Witness container supply chain", () => {
     expect(postgresPersistence).not.toContain("pg_isready");
   });
 
+  test("proves a disposable witness backup restore before publication", () => {
+    expect(workflow).toContain(
+      "Verify disposable encrypted-state and database restore",
+    );
+    expect(workflow).toContain("witness/tests/witness-backup-restore.sh");
+    expect(workflow).toContain(
+      "sudo --preserve-env=PATH,EVIDENCE_WITNESS_TEST_IMAGE",
+    );
+    expect(workflow.indexOf("witness-backup-restore.sh")).toBeLessThan(
+      workflow.indexOf("Log in to GHCR after validation"),
+    );
+  });
+
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {
     expect(dockerfile).toContain("FROM oven/bun:1.3.14-alpine AS runtime");
     expect(dockerfile).toContain(

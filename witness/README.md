@@ -81,6 +81,11 @@ after a drill has restored both the PostgreSQL artifact and encrypted signing
 state. The record must use the
 `absolutejs.vulnerability-evidence-witness-backup-verification/v1` contract,
 contain SHA-256 digests for both artifacts, and record both restoration times.
+The single-host deployment includes runtime-only backup creation, isolated
+restore verification, and a bounded CLI that persists this record through the
+encrypted secret adapter. See
+[`deploy/single-host/README.md`](deploy/single-host/README.md) for the complete
+workflow and outer public-key encryption boundary.
 
 - `PORT`, defaulting to `3000`
 

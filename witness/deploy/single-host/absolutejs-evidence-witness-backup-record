@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $(id -u) != 0 ]]; then
+	echo "witness backup verification recording must run as root" >&2
+	exit 1
+fi
+
+deployment_environment=${EVIDENCE_WITNESS_DEPLOYMENT_ENVIRONMENT:-/etc/absolutejs/evidence-witness/deployment.env}
+witness_container=${EVIDENCE_WITNESS_CONTAINER:-absolutejs-evidence-witness-witness-1}
+secrets_volume=${EVIDENCE_WITNESS_SECRETS_VOLUME:-absolutejs-evidence-witness_witness-secrets}
+
+read_setting() {
+	local name=$1
+	local count
+	local value
+	count=$(grep -c "^${name}=" "${deployment_environment}")
+	if [[ ${count} != 1 ]]; then
+		echo "witness deployment ${name} setting is missing or duplicated" >&2
+		exit 1
+	fi
+	value=$(grep "^${name}=" "${deployment_environment}")
+	printf '%s' "${value#*=}"
+}
+
+runtime_file=$(read_setting WITNESS_RUNTIME_ENV_FILE)
+witness_image=$(read_setting EVIDENCE_WITNESS_IMAGE)
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must remain below /run" >&2
+		exit 1
+		;;
+esac
+if [[ $(stat -c %U:%G:%a "${runtime_file}") != root:root:600 ]]; then
+	echo "witness runtime environment mode is unsafe" >&2
+	exit 1
+fi
+if [[ $(docker inspect --format '{{.Config.Image}}' "${witness_container}") != "${witness_image}" ]]; then
+	echo "running witness image does not match deployment" >&2
+	exit 1
+fi
+
+record=$(mktemp /run/absolutejs-evidence-witness-backup-record.XXXXXX)
+stopped=0
+cleanup() {
+	rm -f "${record}"
+	if [[ ${stopped} == 1 ]]; then
+		docker start "${witness_container}" >/dev/null 2>&1 || true
+	fi
+}
+trap cleanup EXIT HUP INT TERM
+chmod 0600 "${record}"
+cat >"${record}"
+if (( $(stat -c %s "${record}") > 16_384 )); then
+	echo "evidence witness backup record is too large" >&2
+	exit 1
+fi
+
+docker stop --time 30 "${witness_container}" >/dev/null
+stopped=1
+docker run --rm --interactive --network none --user 65532:65532 \
+	--env-file "${runtime_file}" \
+	--entrypoint bun \
+	--mount "type=volume,source=${secrets_volume},target=/var/lib/absolutejs" \
+	"${witness_image}" dist/backupCli.js record-verification \
+	<"${record}" >/dev/null
+docker start "${witness_container}" >/dev/null
+stopped=0
+for _ in {1..30}; do
+	if docker exec "${witness_container}" wget --quiet --output-document=/dev/null \
+		http://127.0.0.1:3443/health >/dev/null 2>&1 || \
+		docker exec "${witness_container}" wget --quiet --no-check-certificate \
+			--output-document=/dev/null https://127.0.0.1:3443/health >/dev/null 2>&1; then
+		echo absolutejs.vulnerability-evidence-witness-backup-verification/v1
+		exit 0
+	fi
+	sleep 1
+done
+
+echo "witness did not become healthy after backup verification recording" >&2
+exit 1
