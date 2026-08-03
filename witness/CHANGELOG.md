@@ -7,6 +7,8 @@
   metadata/private-network egress denial.
 - Refresh the exact PostgreSQL support-image digest after the release scan
   identified vulnerable Go standard-library components in the prior image.
+- Pin the current verified Grype release for both image gates instead of
+  inheriting the scan action's older bundled scanner.
 
 ## 0.4.4 - 2026-08-01
 

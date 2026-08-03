@@ -70,6 +70,7 @@ describe("Witness container supply chain", () => {
     expect(postgresReference).toBeTruthy();
     expect(workflow).toContain(`image: ${postgresReference}`);
     expect(workflow).toContain("id: postgres_scan");
+    expect(workflow.match(/grype-version: 0\.116\.1/gu)).toHaveLength(2);
     expect(workflow).toContain("severity-cutoff: high");
     expect(workflow).toContain("evidence/postgres-grype.json");
     expect(workflow).toMatch(
