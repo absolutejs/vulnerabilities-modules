@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.5 - 2026-08-03
+
+- Require a comma-separated allowlist of exact publicly routable IPv4 `/32`
+  sources before the single-host service changes its firewall, allow only
+  those sources to reach witness HTTPS, and reject every other new ingress
+  connection at the Docker forwarding boundary.
+- Document the matching provider-firewall requirement and the temporary
+  break-glass source used only while commissioning the control plane.
+
 ## 0.7.4 - 2026-08-03
 
 - Freeze signing state with Docker pause/unpause during routine backup creation

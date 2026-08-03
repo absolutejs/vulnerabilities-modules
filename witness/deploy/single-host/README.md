@@ -63,9 +63,18 @@ non-secret configuration:
 EVIDENCE_WITNESS_IMAGE=ghcr.io/absolutejs/vulnerabilities-witness@sha256:<verified-digest>
 WITNESS_HOSTNAME=witness.example.com
 WITNESS_ORIGIN=https://witness.example.com
+WITNESS_INGRESS_IPV4_CIDRS=93.184.216.34/32
 WITNESS_RUNTIME_ENV_FILE=/run/absolutejs-evidence-witness/witness.env
 WITNESS_TLS_DIRECTORY=/run/absolutejs-evidence-witness/tls
 ```
+
+`WITNESS_INGRESS_IPV4_CIDRS` is a comma-separated allowlist of exact,
+publicly routable IPv4 `/32` hosts. Include only stable control-plane egress
+addresses and a separately reviewed break-glass source while commissioning.
+The host firewall rejects all other new connections to the witness container.
+Apply the same allowlist to the provider firewall before activation; the host
+rule is defense in depth and does not replace the provider firewall. Remove
+the break-glass source after the control plane passes the live quorum drill.
 
 The runtime file must define `DATABASE_URL`, `POSTGRES_DB`,
 `POSTGRES_PASSWORD`, `POSTGRES_USER`, `EVIDENCE_WITNESS_SECRETS_PASSPHRASE`,

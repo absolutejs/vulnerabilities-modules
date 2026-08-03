@@ -2,6 +2,82 @@
 set -eu
 
 chain=ABSOLUTEJS-WITNESS
+ingress_cidrs=${1:-}
+
+fail() {
+	echo "$1" >&2
+	exit 1
+}
+
+validate_public_ipv4_host() {
+	cidr=$1
+	case "${cidr}" in
+		*/32) address=${cidr%/32} ;;
+		*) fail "witness ingress CIDRs must be exact IPv4 /32 hosts" ;;
+	esac
+	case "${address}" in
+		"" | *[!0-9.]*) fail "witness ingress CIDR is invalid" ;;
+	esac
+
+	prior_ifs=${IFS}
+	IFS=.
+	set -- ${address}
+	IFS=${prior_ifs}
+	[ "$#" -eq 4 ] || fail "witness ingress CIDR is invalid"
+	for octet in "$@"; do
+		case "${octet}" in
+			0 | [1-9] | [1-9][0-9] | [1-9][0-9][0-9]) ;;
+			*) fail "witness ingress CIDR is invalid" ;;
+		esac
+		[ "${octet}" -le 255 ] 2>/dev/null || \
+			fail "witness ingress CIDR is invalid"
+	done
+
+	first=$1
+	second=$2
+	third=$3
+	case "${first}" in
+		0 | 10 | 127) fail "witness ingress CIDR is not publicly routable" ;;
+	esac
+	[ "${first}" -lt 224 ] || \
+		fail "witness ingress CIDR is not publicly routable"
+	if [ "${first}" -eq 100 ] && [ "${second}" -ge 64 ] && [ "${second}" -le 127 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 169 ] && [ "${second}" -eq 254 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 172 ] && [ "${second}" -ge 16 ] && [ "${second}" -le 31 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 192 ] && { [ "${second}" -eq 0 ] || [ "${second}" -eq 168 ]; }; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 192 ] && [ "${second}" -eq 88 ] && [ "${third}" -eq 99 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 198 ] && { [ "${second}" -eq 18 ] || [ "${second}" -eq 19 ]; }; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 198 ] && [ "${second}" -eq 51 ] && [ "${third}" -eq 100 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+	if [ "${first}" -eq 203 ] && [ "${second}" -eq 0 ] && [ "${third}" -eq 113 ]; then
+		fail "witness ingress CIDR is not publicly routable"
+	fi
+}
+
+[ -n "${ingress_cidrs}" ] || fail "witness ingress CIDRs are required"
+case "${ingress_cidrs}" in
+	,* | *, | *,,*) fail "witness ingress CIDRs are invalid" ;;
+esac
+prior_ifs=${IFS}
+IFS=,
+set -- ${ingress_cidrs}
+IFS=${prior_ifs}
+for cidr in "$@"; do
+	validate_public_ipv4_host "${cidr}"
+done
 
 iptables -N "${chain}" 2>/dev/null || true
 iptables -F "${chain}"
@@ -18,5 +94,13 @@ iptables -A "${chain}" -s 172.30.81.0/24 -j REJECT
 # The ingress interface exists only for DNAT. New outbound flows are denied;
 # replies to accepted HTTPS connections matched ESTABLISHED above.
 iptables -A "${chain}" -s 172.30.82.0/24 -j REJECT
+
+# Only fixed, explicitly reviewed public hosts may reach the DNAT endpoint.
+# Validate the entire list above before modifying the live chain so an invalid
+# deployment cannot flush a previously enforced allowlist.
+for cidr in "$@"; do
+	iptables -A "${chain}" -s "${cidr}" -d 172.30.82.2/32 -p tcp --dport 3443 -j RETURN
+done
+iptables -A "${chain}" -d 172.30.82.2/32 -p tcp --dport 3443 -j REJECT
 
 iptables -A "${chain}" -j RETURN

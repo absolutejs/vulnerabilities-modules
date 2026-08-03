@@ -1,12 +1,18 @@
 import { describe, expect, test } from "bun:test";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
+const firewallUrl = new URL(
+  "deploy/single-host/absolutejs-evidence-witness-firewall",
+  root,
+);
 const compose = await Bun.file(
   new URL("deploy/single-host/compose.yml", root),
 ).text();
-const firewall = await Bun.file(
-  new URL("deploy/single-host/absolutejs-evidence-witness-firewall", root),
-).text();
+const firewall = await Bun.file(firewallUrl).text();
 const preflight = await Bun.file(
   new URL("deploy/single-host/absolutejs-evidence-witness-preflight", root),
 ).text();
@@ -60,6 +66,38 @@ const postgresService = compose.slice(
   compose.indexOf("  witness-secrets-init:"),
 );
 
+const runFirewallWithMockIptables = async (cidrs: string) => {
+  const directory = await mkdtemp(join(tmpdir(), "witness-firewall-"));
+  const iptables = join(directory, "iptables");
+  const log = join(directory, "iptables.log");
+  await writeFile(
+    iptables,
+    '#!/bin/sh\nprintf \'%s\\n\' "$*" >> "${IPTABLES_LOG}"\n',
+  );
+  await chmod(iptables, 0o700);
+
+  try {
+    const process = Bun.spawn(["sh", fileURLToPath(firewallUrl), cidrs], {
+      env: {
+        ...globalThis.process.env,
+        IPTABLES_LOG: log,
+        PATH: `${directory}:${globalThis.process.env.PATH ?? ""}`,
+      },
+      stderr: "pipe",
+      stdout: "pipe",
+    });
+    const [exitCode, stderr] = await Promise.all([
+      process.exited,
+      new Response(process.stderr).text(),
+    ]);
+    const commands = await readFile(log, "utf8").catch(() => "");
+
+    return { commands, exitCode, stderr };
+  } finally {
+    await rm(directory, { force: true, recursive: true });
+  }
+};
+
 describe("single-host witness deployment", () => {
   test("pins support images and requires one preverified witness digest", () => {
     expect(compose).toContain(
@@ -92,6 +130,60 @@ describe("single-host witness deployment", () => {
     expect(firewall).toContain("-s 172.30.81.0/24 -j REJECT");
     expect(firewall).toContain("-s 172.30.82.0/24 -j REJECT");
     expect(firewall).not.toContain("--dports 80,443 -j RETURN");
+  });
+
+  test("fails closed unless witness ingress is limited to exact public IPv4 hosts", () => {
+    expect(service).toContain(
+      "absolutejs-evidence-witness-firewall ${WITNESS_INGRESS_IPV4_CIDRS}",
+    );
+    expect(firewall).toContain("witness ingress CIDRs are required");
+    expect(firewall).toContain('case "${cidr}" in');
+    expect(firewall).toContain("*/32)");
+    expect(firewall).toContain("witness ingress CIDR is not publicly routable");
+    expect(firewall).toContain(
+      '-s "${cidr}" -d 172.30.82.2/32 -p tcp --dport 3443 -j RETURN',
+    );
+    expect(firewall).toContain(
+      "-d 172.30.82.2/32 -p tcp --dport 3443 -j REJECT",
+    );
+    expect(guide).toContain("WITNESS_INGRESS_IPV4_CIDRS=93.184.216.34/32");
+    expect(guide).toContain("provider firewall");
+  });
+
+  test("validates the complete ingress allowlist before changing iptables", async () => {
+    for (const invalid of [
+      "",
+      "0.0.0.0/0",
+      "10.0.0.1/32",
+      "169.254.169.254/32",
+      "203.0.113.10/32",
+      "8.8.8.8/24",
+      "008.8.8.8/32",
+      "8.8.8.8/32, 1.1.1.1/32",
+    ]) {
+      const result = await runFirewallWithMockIptables(invalid);
+      expect(result.exitCode).not.toBe(0);
+      expect(result.stderr).toContain("witness ingress");
+      expect(result.commands).toBe("");
+    }
+  });
+
+  test("allows reviewed hosts before rejecting all other witness ingress", async () => {
+    const result = await runFirewallWithMockIptables("8.8.8.8/32,1.1.1.1/32");
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.commands).toContain(
+      "-A ABSOLUTEJS-WITNESS -s 8.8.8.8/32 -d 172.30.82.2/32 -p tcp --dport 3443 -j RETURN",
+    );
+    expect(result.commands).toContain(
+      "-A ABSOLUTEJS-WITNESS -s 1.1.1.1/32 -d 172.30.82.2/32 -p tcp --dport 3443 -j RETURN",
+    );
+    const reject =
+      "-A ABSOLUTEJS-WITNESS -d 172.30.82.2/32 -p tcp --dport 3443 -j REJECT";
+    expect(result.commands).toContain(reject);
+    expect(result.commands.indexOf("-s 1.1.1.1/32")).toBeLessThan(
+      result.commands.indexOf(reject),
+    );
   });
 
   test("uses the image-local HTTPS client for portable health checks", () => {
