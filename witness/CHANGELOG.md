@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 - 2026-08-03
+
+- Pass systemd's exported `CREDENTIALS_DIRECTORY` to the runtime materializer;
+  `%d` is supported in environment assignments but remains literal in service
+  command arguments on the deployed systemd version.
+
 ## 0.5.0 - 2026-08-03
 
 - Add optional systemd host-bound encrypted credentials that atomically

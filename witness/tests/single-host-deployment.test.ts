@@ -105,8 +105,9 @@ describe("single-host witness deployment", () => {
   test("supports host-bound encrypted reboot materialization without making it mandatory", () => {
     expect(service).toContain("ImportCredential=absolutejs.witness.*");
     expect(service).toContain(
-      "absolutejs-evidence-witness-runtime-materialize %d",
+      "absolutejs-evidence-witness-runtime-materialize ${CREDENTIALS_DIRECTORY}",
     );
+    expect(service).not.toContain("runtime-materialize %d");
     expect(service.indexOf("runtime-materialize")).toBeLessThan(
       service.indexOf("absolutejs-evidence-witness-preflight"),
     );
