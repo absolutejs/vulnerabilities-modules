@@ -52,7 +52,7 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 chmod 0600 "${record}"
 cat >"${record}"
-if (( $(stat -c %s "${record}") > 16_384 )); then
+if (( $(stat -c %s "${record}") > 16384 )); then
 	echo "evidence witness backup record is too large" >&2
 	exit 1
 fi

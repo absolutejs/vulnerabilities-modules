@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.2 - 2026-08-03
+
+- Use a Bash-compatible integer literal for the host backup-verification
+  record size guard, preserving the defense-in-depth rejection before any
+  witness container is stopped.
+
 ## 0.7.1 - 2026-08-03
 
 - Accept systemd's intentionally read-only `0400` materialization for the

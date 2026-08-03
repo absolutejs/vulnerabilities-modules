@@ -173,6 +173,8 @@ describe("single-host witness deployment", () => {
     );
     expect(backupRecord).toContain("--network none");
     expect(backupRecord).toContain("dist/backupCli.js record-verification");
+    expect(backupRecord).toContain("> 16384 )); then");
+    expect(backupRecord).not.toContain("16_384");
     expect(backupRecord).toContain(
       'docker stop --time 30 "${witness_container}"',
     );

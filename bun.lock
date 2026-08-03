@@ -28,7 +28,7 @@
     },
     "witness": {
       "name": "@absolutejs/vulnerabilities-witness",
-      "version": "0.7.1",
+      "version": "0.7.2",
       "bin": {
         "absolute-vulnerability-witness": "dist/server.js",
         "absolute-vulnerability-witness-backup": "dist/backupCli.js",
