@@ -5,6 +5,8 @@
 - Add a reusable digest-pinned single-host deployment contract with native
   TLS, runtime-only secret injection, private PostgreSQL, and explicit
   metadata/private-network egress denial.
+- Refresh the exact PostgreSQL support-image digest after the release scan
+  identified vulnerable Go standard-library components in the prior image.
 
 ## 0.4.4 - 2026-08-01
 
