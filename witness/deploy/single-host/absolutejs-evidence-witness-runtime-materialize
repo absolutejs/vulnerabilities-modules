@@ -1,9 +1,20 @@
 #!/bin/sh
 set -eu
 
-credentials_directory=${1:-}
-runtime_file=${2:-}
-tls_directory=${3:-}
+if [ "$#" -eq 2 ]; then
+	credentials_directory=${CREDENTIALS_DIRECTORY:-}
+	runtime_file=$1
+	tls_directory=$2
+elif [ "$#" -eq 3 ]; then
+	# Preserve the original explicit-directory interface for callers outside
+	# systemd and for older deployment automation.
+	credentials_directory=$1
+	runtime_file=$2
+	tls_directory=$3
+else
+	echo "witness runtime materializer requires runtime and TLS paths" >&2
+	exit 1
+fi
 runtime_credential=${credentials_directory}/absolutejs.witness.runtime.env
 certificate_credential=${credentials_directory}/absolutejs.witness.tls.crt
 key_credential=${credentials_directory}/absolutejs.witness.tls.key

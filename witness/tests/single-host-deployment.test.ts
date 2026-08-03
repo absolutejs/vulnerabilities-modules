@@ -105,15 +105,21 @@ describe("single-host witness deployment", () => {
   test("supports host-bound encrypted reboot materialization without making it mandatory", () => {
     expect(service).toContain("ImportCredential=absolutejs.witness.*");
     expect(service).toContain(
-      "absolutejs-evidence-witness-runtime-materialize ${CREDENTIALS_DIRECTORY}",
+      "absolutejs-evidence-witness-runtime-materialize ${WITNESS_RUNTIME_ENV_FILE}",
     );
     expect(service).not.toContain("runtime-materialize %d");
+    expect(service).not.toContain(
+      "runtime-materialize ${CREDENTIALS_DIRECTORY}",
+    );
     expect(service.indexOf("runtime-materialize")).toBeLessThan(
       service.indexOf("absolutejs-evidence-witness-preflight"),
     );
     expect(service).toContain("absolutejs-evidence-witness-runtime-cleanup");
     expect(runtimeMaterializer).toContain(
       "witness encrypted credential set is incomplete",
+    );
+    expect(runtimeMaterializer).toContain(
+      "credentials_directory=${CREDENTIALS_DIRECTORY:-}",
     );
     expect(runtimeMaterializer).toContain('[ "${present}" -eq 0 ]');
     expect(runtimeMaterializer).toContain("must not be symbolic links");

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2 - 2026-08-03
+
+- Read systemd's generated `CREDENTIALS_DIRECTORY` inside the runtime
+  materializer process so encrypted credentials are found on deployed hosts,
+  while preserving the explicit-directory interface for existing callers.
+
 ## 0.5.1 - 2026-08-03
 
 - Pass systemd's exported `CREDENTIALS_DIRECTORY` to the runtime materializer;
