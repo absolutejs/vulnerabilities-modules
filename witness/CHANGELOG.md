@@ -5,6 +5,8 @@
 - Read systemd's generated `CREDENTIALS_DIRECTORY` inside the runtime
   materializer process so encrypted credentials are found on deployed hosts,
   while preserving the explicit-directory interface for existing callers.
+- Wait for the configured PostgreSQL database to accept a real query before
+  exercising the persistence canary, removing an initialization race.
 
 ## 0.5.1 - 2026-08-03
 

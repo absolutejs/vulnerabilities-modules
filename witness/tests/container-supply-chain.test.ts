@@ -13,6 +13,9 @@ const dockerfile = await Bun.file(
 const singleHostCompose = await Bun.file(
   new URL("witness/deploy/single-host/compose.yml", repositoryRoot),
 ).text();
+const postgresPersistence = await Bun.file(
+  new URL("witness/tests/postgres18-persistence.sh", repositoryRoot),
+).text();
 
 const actionReferences = [
   ...workflow.matchAll(/^\s*uses:\s*([^\s#]+?)(?:\s+#.*)?$/gmu),
@@ -81,6 +84,12 @@ describe("Witness container supply chain", () => {
     expect(workflow).toMatch(
       /Retain failed vulnerability evidence[\s\S]*path: \|[\s\S]*evidence\/grype\.json[\s\S]*evidence\/postgres-grype\.json/u,
     );
+  });
+
+  test("waits for the configured PostgreSQL database before testing persistence", () => {
+    expect(postgresPersistence).toContain('--command "SELECT 1;"');
+    expect(postgresPersistence).toContain("--dbname witness_persistence_test");
+    expect(postgresPersistence).not.toContain("pg_isready");
   });
 
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {

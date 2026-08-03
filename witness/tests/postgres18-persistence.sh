@@ -28,9 +28,13 @@ start_postgres() {
     "$image" >/dev/null
 
   for _ in {1..30}; do
-    if docker exec "$container" pg_isready \
+    if docker exec "$container" psql \
       --username witness_test \
-      --dbname witness_persistence_test >/dev/null 2>&1; then
+      --dbname witness_persistence_test \
+      --tuples-only \
+      --no-align \
+      --set ON_ERROR_STOP=1 \
+      --command "SELECT 1;" >/dev/null 2>&1; then
       return
     fi
     sleep 1
