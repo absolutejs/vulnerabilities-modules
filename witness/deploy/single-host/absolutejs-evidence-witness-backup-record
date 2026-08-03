@@ -60,6 +60,7 @@ fi
 docker stop --time 30 "${witness_container}" >/dev/null
 stopped=1
 docker run --rm --interactive --network none --user 65532:65532 \
+	--memory 128m --memory-swap 128m --pids-limit 32 --cpus 0.5 \
 	--env-file "${runtime_file}" \
 	--entrypoint bun \
 	--mount "type=volume,source=${secrets_volume},target=/var/lib/absolutejs" \
