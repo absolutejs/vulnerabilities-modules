@@ -72,6 +72,9 @@ describe("Witness container supply chain", () => {
     expect(workflow).toContain("id: postgres_scan");
     expect(workflow).toContain("severity-cutoff: high");
     expect(workflow).toContain("evidence/postgres-grype.json");
+    expect(workflow).toMatch(
+      /Retain failed vulnerability evidence[\s\S]*path: \|[\s\S]*evidence\/grype\.json[\s\S]*evidence\/postgres-grype\.json/u,
+    );
   });
 
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {
