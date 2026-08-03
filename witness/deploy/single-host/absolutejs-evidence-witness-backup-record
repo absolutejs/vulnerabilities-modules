@@ -42,11 +42,11 @@ if [[ $(docker inspect --format '{{.Config.Image}}' "${witness_container}") != "
 fi
 
 record=$(mktemp /run/absolutejs-evidence-witness-backup-record.XXXXXX)
-stopped=0
+paused=0
 cleanup() {
 	rm -f "${record}"
-	if [[ ${stopped} == 1 ]]; then
-		docker start "${witness_container}" >/dev/null 2>&1 || true
+	if [[ ${paused} == 1 ]]; then
+		docker unpause "${witness_container}" >/dev/null 2>&1 || true
 	fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -57,8 +57,8 @@ if (( $(stat -c %s "${record}") > 16384 )); then
 	exit 1
 fi
 
-docker stop --time 30 "${witness_container}" >/dev/null
-stopped=1
+docker pause "${witness_container}" >/dev/null
+paused=1
 docker run --rm --interactive --network none --user 65532:65532 \
 	--memory 128m --memory-swap 128m --pids-limit 32 --cpus 0.5 \
 	--env-file "${runtime_file}" \
@@ -66,8 +66,8 @@ docker run --rm --interactive --network none --user 65532:65532 \
 	--mount "type=volume,source=${secrets_volume},target=/var/lib/absolutejs" \
 	"${witness_image}" dist/backupCli.js record-verification \
 	<"${record}" >/dev/null
-docker start "${witness_container}" >/dev/null
-stopped=0
+docker unpause "${witness_container}" >/dev/null
+paused=0
 for _ in {1..30}; do
 	if docker exec "${witness_container}" wget --quiet --output-document=/dev/null \
 		http://127.0.0.1:3443/health >/dev/null 2>&1 || \

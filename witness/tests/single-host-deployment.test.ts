@@ -166,10 +166,9 @@ describe("single-host witness deployment", () => {
     expect(backupCreate).toContain(
       "--memory 128m --memory-swap 128m --pids-limit 32 --cpus 0.5",
     );
-    expect(backupCreate).toContain(
-      'docker stop --time 30 "${witness_container}"',
-    );
-    expect(backupCreate).toContain('docker start "${witness_container}"');
+    expect(backupCreate).toContain('docker pause "${witness_container}"');
+    expect(backupCreate).toContain('docker unpause "${witness_container}"');
+    expect(backupCreate).not.toContain("docker stop");
     expect(backupCreate).toContain(
       "witness did not become healthy after backup snapshot",
     );
@@ -188,10 +187,9 @@ describe("single-host witness deployment", () => {
     expect(backupRecord).toContain("dist/backupCli.js record-verification");
     expect(backupRecord).toContain("> 16384 )); then");
     expect(backupRecord).not.toContain("16_384");
-    expect(backupRecord).toContain(
-      'docker stop --time 30 "${witness_container}"',
-    );
-    expect(backupRecord).toContain('docker start "${witness_container}"');
+    expect(backupRecord).toContain('docker pause "${witness_container}"');
+    expect(backupRecord).toContain('docker unpause "${witness_container}"');
+    expect(backupRecord).not.toContain("docker stop");
     expect(backupRecord).not.toContain("--publish");
   });
 

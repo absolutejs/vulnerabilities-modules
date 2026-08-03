@@ -64,11 +64,11 @@ if [[ $(docker inspect --format '{{.Config.Image}}' "${witness_container}") != "
 fi
 
 staging=$(mktemp -d /run/absolutejs-evidence-witness-backup.XXXXXX)
-stopped=0
+paused=0
 cleanup() {
 	rm -rf "${staging}"
-	if [[ ${stopped} == 1 ]]; then
-		docker start "${witness_container}" >/dev/null 2>&1 || true
+	if [[ ${paused} == 1 ]]; then
+		docker unpause "${witness_container}" >/dev/null 2>&1 || true
 	fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -83,8 +83,8 @@ if [[ ! ${database_rows} =~ ^[0-9]+$ ]]; then
 	echo "witness database row count is invalid" >&2
 	exit 1
 fi
-docker stop --time 30 "${witness_container}" >/dev/null
-stopped=1
+docker pause "${witness_container}" >/dev/null
+paused=1
 docker cp \
 	"${witness_container}:/var/lib/absolutejs/secrets.enc.json" \
 	"${staging}/signing-state.enc.json" >/dev/null
@@ -98,7 +98,7 @@ docker run --rm --network none --user 65532:65532 \
 	--entrypoint bun \
 	--mount "type=bind,source=${staging},target=/backup,readonly" \
 	"${witness_image}" dist/backupCli.js registry >"${staging}/registry.json"
-docker start "${witness_container}" >/dev/null
+docker unpause "${witness_container}" >/dev/null
 healthy=0
 for _ in {1..30}; do
 	if docker exec "${witness_container}" wget --quiet --output-document=/dev/null \
@@ -114,7 +114,7 @@ if [[ ${healthy} != 1 ]]; then
 	echo "witness did not become healthy after backup snapshot" >&2
 	exit 1
 fi
-stopped=0
+paused=0
 chown 0:0 "${staging}/registry.json"
 chmod 0600 "${staging}/registry.json"
 
