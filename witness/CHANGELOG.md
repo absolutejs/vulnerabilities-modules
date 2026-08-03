@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4 - 2026-08-03
+
+- Freeze signing state with Docker pause/unpause instead of stop/start during
+  backup creation and restore-evidence recording. This avoids forced process
+  termination while retaining a fail-safe cleanup trap and health gate.
+
 ## 0.7.3 - 2026-08-03
 
 - Snapshot signing state while the witness is briefly stopped, guarantee a

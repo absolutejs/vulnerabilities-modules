@@ -212,7 +212,7 @@ new Docker volume, starts the restored witness on an internal-only Docker
 network, and compares its public key registry byte-for-byte with the registry
 derived at backup time. All disposable containers, networks, volumes, and
 plaintext runtime artifacts are removed on exit. A successful record updates
-the authenticated `/v1/status` backup posture after briefly stopping that one
+the authenticated `/v1/status` backup posture after briefly pausing that one
 witness, serializing the encrypted-file update against key rotation, and
 waiting for the same container to become healthy again. Run quorum-member
 drills sequentially and verify the other member before each recording step.
