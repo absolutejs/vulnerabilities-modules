@@ -21,7 +21,7 @@ services:
       - /run/postgresql:rw,nosuid,noexec,nodev,size=16m
       - /tmp:rw,nosuid,noexec,nodev,size=32m
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     networks:
       backend:
         ipv4_address: 172.30.81.2

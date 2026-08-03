@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.6 - 2026-08-03
+
+- Mount the PostgreSQL 18 persistent volume at its supported major-version
+  root and verify that a synthetic canary survives a disposable container
+  restart.
+
 ## 0.4.5 - 2026-08-02
 
 - Add a reusable digest-pinned single-host deployment contract with native

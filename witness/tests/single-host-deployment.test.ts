@@ -42,6 +42,13 @@ describe("single-host witness deployment", () => {
     expect(postgresService).not.toContain("ports:");
   });
 
+  test("uses the PostgreSQL 18 persistent-volume layout", () => {
+    expect(postgresService).toContain("postgres-data:/var/lib/postgresql");
+    expect(postgresService).not.toContain(
+      "postgres-data:/var/lib/postgresql/data",
+    );
+  });
+
   test("denies every non-database connection from the service network", () => {
     expect(firewall).toContain("-s 172.30.81.0/24 -j REJECT");
     expect(firewall).toContain("-s 172.30.82.0/24 -j REJECT");
