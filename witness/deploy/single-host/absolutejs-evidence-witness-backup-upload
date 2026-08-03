@@ -18,12 +18,14 @@ case "${runtime_directory}" in
 		exit 1
 		;;
 esac
-for file in "${configuration}" "${credential_file}"; do
-	if [[ -L ${file} || ! -f ${file} || $(stat -c %U:%G:%a "${file}") != root:root:600 ]]; then
-		echo "witness backup configuration or credential mode is unsafe" >&2
-		exit 1
-	fi
-done
+if [[ -L ${configuration} || ! -f ${configuration} || $(stat -c %U:%G:%a "${configuration}") != root:root:600 ]]; then
+	echo "witness backup configuration mode is unsafe" >&2
+	exit 1
+fi
+if [[ -L ${credential_file} || ! -f ${credential_file} || $(stat -c %U:%G:%a "${credential_file}") != root:root:400 ]]; then
+	echo "witness backup systemd credential mode is unsafe" >&2
+	exit 1
+fi
 
 read_setting() {
 	local file=$1

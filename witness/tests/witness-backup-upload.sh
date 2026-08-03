@@ -40,7 +40,9 @@ WITNESS_BACKUP_S3_SECRET_ACCESS_KEY=SYNTHETIC_S3_SECRET
 WITNESS_BACKUP_SPACES_ACCESS_KEY_ID=SYNTHETIC_SPACES_ACCESS
 WITNESS_BACKUP_SPACES_SECRET_ACCESS_KEY=SYNTHETIC_SPACES_SECRET
 EOF
-chmod 0600 "${configuration}" "${credentials}/absolutejs.witness.backup-upload.env"
+chmod 0600 "${configuration}"
+# systemd materializes LoadCredentialEncrypted= files read-only for the service.
+chmod 0400 "${credentials}/absolutejs.witness.backup-upload.env"
 
 cat >"${commands}/absolutejs-evidence-witness-backup-create" <<'EOF'
 #!/usr/bin/env bash

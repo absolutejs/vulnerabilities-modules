@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.1 - 2026-08-03
+
+- Accept systemd's intentionally read-only `0400` materialization for the
+  encrypted backup-writer credential while continuing to require the separate
+  non-secret backup configuration to be root-owned `0600`.
+- Exercise the backup uploader with the actual `LoadCredentialEncrypted=` file
+  mode so package tests match the deployed systemd boundary.
+
 ## 0.6.0 - 2026-08-03
 
 - Add runtime-only backup creation and disposable no-egress restore
