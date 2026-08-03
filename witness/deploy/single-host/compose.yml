@@ -39,7 +39,7 @@ services:
     entrypoint:
       - sh
       - -ec
-      - chown 1000:1000 /var/lib/absolutejs && chmod 0700 /var/lib/absolutejs
+      - chown 65532:65532 /var/lib/absolutejs && chmod 0700 /var/lib/absolutejs
     read_only: true
     cap_drop:
       - ALL
@@ -56,7 +56,7 @@ services:
     image: ${EVIDENCE_WITNESS_IMAGE:?immutable witness image is required}
     pull_policy: never
     restart: unless-stopped
-    user: "1000:1000"
+    user: "65532:65532"
     env_file: ${WITNESS_RUNTIME_ENV_FILE:?runtime secret file is required}
     environment:
       EVIDENCE_WITNESS_ORIGIN: ${WITNESS_ORIGIN:?HTTPS witness origin is required}

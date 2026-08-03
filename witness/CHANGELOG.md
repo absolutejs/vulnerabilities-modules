@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.7 - 2026-08-03
+
+- Run the single-host witness under dedicated numeric UID/GID `65532:65532`
+  instead of a common host-login identity.
+- Require root-owned execute-only TLS path directories so the witness can read
+  its private key without granting directory listing or host-login ownership.
+
 ## 0.4.6 - 2026-08-03
 
 - Mount the PostgreSQL 18 persistent volume at its supported major-version

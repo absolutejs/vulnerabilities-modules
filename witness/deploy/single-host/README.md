@@ -59,11 +59,14 @@ The runtime file must define `DATABASE_URL`, `POSTGRES_DB`,
 `EVIDENCE_WITNESS_ORIGIN` to the same origin as the deployment file.
 
 The secret manager must also inject `tls.crt` and `tls.key` below
-`WITNESS_TLS_DIRECTORY`. The certificate must be root-owned `0644`; the private
-key must be owned by UID/GID `1000:1000` with mode `0400` so only the
-capability-free witness process can read it. Private test CAs are acceptable
-only for a bounded staging drill whose CA bundle is pinned by PAAS. Public
-launch requires a publicly trusted certificate and an automated rotation path.
+`WITNESS_TLS_DIRECTORY`. Make that directory and its immediate parent
+root-owned `0711`: the dedicated container identity can traverse the path but
+cannot list either directory. The certificate must be root-owned `0644`; the
+private key must be owned by the dedicated numeric container UID/GID
+`65532:65532` with mode `0400`. Do not reuse a host login UID for this identity.
+Private test CAs are acceptable only for a bounded staging drill whose CA
+bundle is pinned by PAAS. Public launch requires a publicly trusted certificate
+and an automated rotation path.
 
 After the provider secret manager has written the runtime file, start with
 `systemctl start absolutejs-evidence-witness`. Verify HTTPS health and keys,

@@ -91,6 +91,8 @@ describe("Witness container supply chain", () => {
     expect(dockerfile).toContain("RUN apk upgrade --no-cache");
     expect(dockerfile).not.toContain("FROM oven/bun:1.3.14-slim AS runtime");
     expect(dockerfile).not.toMatch(/^FROM\s+[^\s]+:(?:latest|main)\b/mu);
+    expect(workflow.match(/--user 65532:65532/gu)).toHaveLength(2);
+    expect(workflow.match(/--network none/gu)).toHaveLength(2);
   });
 
   test("requires digest-pinned deployment and independent witness boundaries", () => {

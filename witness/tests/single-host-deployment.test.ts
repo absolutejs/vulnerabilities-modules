@@ -58,7 +58,11 @@ describe("single-host witness deployment", () => {
   test("fails closed without a root-only runtime secret file", () => {
     expect(preflight).toContain("/run/*");
     expect(preflight).toContain("root:root:600");
-    expect(preflight).toContain("1000:1000:400");
+    expect(preflight.match(/root:root 0711/g)?.length).toBe(2);
+    expect(preflight).toContain("65532:65532:400");
+    expect(compose).toContain('user: "65532:65532"');
+    expect(compose).toContain("chown 65532:65532 /var/lib/absolutejs");
+    expect(compose).not.toMatch(/\b1000:1000\b/u);
     expect(preflight).toContain("*@sha256:*");
     expect(preflight).toContain("*[!0-9a-f]*");
     expect(service).toContain("absolutejs-evidence-witness-preflight");

@@ -28,12 +28,21 @@ case "${tls_directory}" in
 		exit 1
 		;;
 esac
+tls_parent=$(dirname "${tls_directory}")
+if [ "$(stat -c %u:%g:%a "${tls_parent}")" != 0:0:711 ]; then
+	echo "witness TLS parent directory must be root:root 0711" >&2
+	exit 1
+fi
+if [ "$(stat -c %u:%g:%a "${tls_directory}")" != 0:0:711 ]; then
+	echo "witness TLS directory must be root:root 0711" >&2
+	exit 1
+fi
 if [ "$(stat -c %u:%g:%a "${tls_directory}/tls.crt")" != 0:0:644 ]; then
 	echo "witness TLS certificate must be root:root 0644" >&2
 	exit 1
 fi
-if [ "$(stat -c %u:%g:%a "${tls_directory}/tls.key")" != 1000:1000:400 ]; then
-	echo "witness TLS key must be 1000:1000 0400" >&2
+if [ "$(stat -c %u:%g:%a "${tls_directory}/tls.key")" != 65532:65532:400 ]; then
+	echo "witness TLS key must be 65532:65532 0400" >&2
 	exit 1
 fi
 
