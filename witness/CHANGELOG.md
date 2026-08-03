@@ -2,9 +2,12 @@
 
 ## 0.7.4 - 2026-08-03
 
-- Freeze signing state with Docker pause/unpause instead of stop/start during
-  backup creation and restore-evidence recording. This avoids forced process
-  termination while retaining a fail-safe cleanup trap and health gate.
+- Freeze signing state with Docker pause/unpause during routine backup creation
+  so the live process is not terminated, while retaining a fail-safe cleanup
+  trap and health gate.
+- Gracefully close HTTP and PostgreSQL on SIGINT or SIGTERM so the rare
+  restore-evidence write can release its encrypted-state lock without Docker
+  forcing process termination.
 
 ## 0.7.3 - 2026-08-03
 
