@@ -13,6 +13,9 @@ const preflight = await Bun.file(
 const service = await Bun.file(
   new URL("deploy/single-host/absolutejs-evidence-witness.service", root),
 ).text();
+const secretsInitializer = await Bun.file(
+  new URL("deploy/single-host/absolutejs-evidence-witness-secrets-init", root),
+).text();
 const guide = await Bun.file(
   new URL("deploy/single-host/README.md", root),
 ).text();
@@ -61,8 +64,15 @@ describe("single-host witness deployment", () => {
     expect(preflight.match(/root:root 0711/g)?.length).toBe(2);
     expect(preflight).toContain("65532:65532:400");
     expect(compose).toContain('user: "65532:65532"');
-    expect(compose).toContain("chown 65532:65532 /var/lib/absolutejs");
+    expect(compose).toContain("absolutejs-evidence-witness-secrets-init:ro");
     expect(compose).not.toMatch(/\b1000:1000\b/u);
+    expect(secretsInitializer).toContain('chown 65532:65532 "${secrets_file}"');
+    expect(secretsInitializer).toContain('chown 0:0 "${secrets_directory}"');
+    expect(secretsInitializer).toMatch(
+      /chown 65532:65532 "\$\{secrets_directory\}"\s*$/u,
+    );
+    expect(secretsInitializer).toContain('chmod 0600 "${secrets_file}"');
+    expect(secretsInitializer).toContain("must not be a symbolic link");
     expect(preflight).toContain("*@sha256:*");
     expect(preflight).toContain("*[!0-9a-f]*");
     expect(service).toContain("absolutejs-evidence-witness-preflight");

@@ -36,10 +36,7 @@ services:
     image: ${EVIDENCE_WITNESS_IMAGE:?immutable witness image is required}
     pull_policy: never
     user: "0:0"
-    entrypoint:
-      - sh
-      - -ec
-      - chown 65532:65532 /var/lib/absolutejs && chmod 0700 /var/lib/absolutejs
+    entrypoint: /usr/local/sbin/absolutejs-evidence-witness-secrets-init
     read_only: true
     cap_drop:
       - ALL
@@ -50,6 +47,7 @@ services:
       - no-new-privileges:true
     network_mode: none
     volumes:
+      - ./absolutejs-evidence-witness-secrets-init:/usr/local/sbin/absolutejs-evidence-witness-secrets-init:ro
       - witness-secrets:/var/lib/absolutejs
 
   witness:

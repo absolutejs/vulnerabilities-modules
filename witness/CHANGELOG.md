@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.8 - 2026-08-03
+
+- Safely migrate an existing encrypted witness-state file from the legacy host
+  UID to the dedicated runtime identity and reject symbolic-link state paths.
+- Exercise that ownership migration against a disposable named volume in the
+  release pipeline.
+
 ## 0.4.7 - 2026-08-03
 
 - Run the single-host witness under dedicated numeric UID/GID `65532:65532`

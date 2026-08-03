@@ -93,6 +93,9 @@ describe("Witness container supply chain", () => {
     expect(dockerfile).not.toMatch(/^FROM\s+[^\s]+:(?:latest|main)\b/mu);
     expect(workflow.match(/--user 65532:65532/gu)).toHaveLength(2);
     expect(workflow.match(/--network none/gu)).toHaveLength(2);
+    expect(
+      workflow.match(/witness-secret-ownership-migration\.sh/gu),
+    ).toHaveLength(2);
   });
 
   test("requires digest-pinned deployment and independent witness boundaries", () => {
