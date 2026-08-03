@@ -11,6 +11,7 @@ import {
   ensurePostgresEvidenceWitnessSchema,
 } from "./postgres";
 import { evidenceWitnessTlsFilePaths } from "./serverTransport";
+import { createEvidenceWitnessShutdown } from "./serverLifecycle";
 
 const required = (name: string) => {
   const value = process.env[name]?.trim();
@@ -93,7 +94,7 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65_535)
   throw new Error("PORT must be a valid TCP port");
 
 const tlsPaths = evidenceWitnessTlsFilePaths();
-Bun.serve({
+const server = Bun.serve({
   fetch: handler,
   port,
   ...(tlsPaths
@@ -122,3 +123,19 @@ const maintenanceTimer = setInterval(
 );
 maintenanceTimer.unref();
 void maintain();
+
+const shutdown = createEvidenceWitnessShutdown({
+  clearMaintenance: () => clearInterval(maintenanceTimer),
+  stopServer: () => server.stop(true),
+  closeDatabase: () => database.close(),
+});
+const handleShutdown = () => {
+  void shutdown()
+    .then(() => process.exit(0))
+    .catch((error: unknown) => {
+      console.error("Evidence witness graceful shutdown failed", error);
+      process.exit(1);
+    });
+};
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
