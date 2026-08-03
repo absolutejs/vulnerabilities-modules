@@ -135,7 +135,7 @@ jobs:
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          grype-version: 0.116.1
+          grype-version: v0.116.1
           fail-build: true
           output-format: json
           severity-cutoff: high
@@ -145,16 +145,18 @@ jobs:
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
-          grype-version: 0.116.1
+          grype-version: v0.116.1
           fail-build: true
           output-format: json
           severity-cutoff: high
 
-      - name: Stage the vulnerability report
-        if: always()
-        run: |
-          cp "${{ steps.scan.outputs.json }}" evidence/grype.json
-          cp "${{ steps.postgres_scan.outputs.json }}" evidence/postgres-grype.json
+      - name: Stage the witness vulnerability report
+        if: always() && steps.scan.outputs.json != ''
+        run: cp "${{ steps.scan.outputs.json }}" evidence/grype.json
+
+      - name: Stage the PostgreSQL vulnerability report
+        if: always() && steps.postgres_scan.outputs.json != ''
+        run: cp "${{ steps.postgres_scan.outputs.json }}" evidence/postgres-grype.json
 
       - name: Retain failed vulnerability evidence
         if: failure()
@@ -164,7 +166,7 @@ jobs:
           path: |
             evidence/grype.json
             evidence/postgres-grype.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Log in to GHCR after validation
