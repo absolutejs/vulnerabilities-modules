@@ -8,11 +8,14 @@ Wants=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 EnvironmentFile=/etc/absolutejs/evidence-witness/deployment.env
+ImportCredential=absolutejs.witness.*
 WorkingDirectory=/opt/absolutejs/evidence-witness
+ExecStartPre=/usr/local/sbin/absolutejs-evidence-witness-runtime-materialize %d ${WITNESS_RUNTIME_ENV_FILE} ${WITNESS_TLS_DIRECTORY}
 ExecStartPre=/usr/local/sbin/absolutejs-evidence-witness-preflight ${WITNESS_RUNTIME_ENV_FILE} ${WITNESS_TLS_DIRECTORY} ${EVIDENCE_WITNESS_IMAGE}
 ExecStartPre=/usr/local/sbin/absolutejs-evidence-witness-firewall
 ExecStart=/usr/bin/docker compose --env-file /etc/absolutejs/evidence-witness/deployment.env up --detach --wait --no-build --pull never
 ExecStop=/usr/bin/docker compose --env-file /etc/absolutejs/evidence-witness/deployment.env down
+ExecStopPost=/usr/local/sbin/absolutejs-evidence-witness-runtime-cleanup ${WITNESS_RUNTIME_ENV_FILE} ${WITNESS_TLS_DIRECTORY}
 TimeoutStartSec=180
 TimeoutStopSec=90
 

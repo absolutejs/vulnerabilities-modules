@@ -1,0 +1,33 @@
+#!/bin/sh
+set -eu
+
+runtime_file=${1:-}
+tls_directory=${2:-}
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must be below /run" >&2
+		exit 1
+		;;
+esac
+case "${tls_directory}" in
+	/run/*) ;;
+	*)
+		echo "witness TLS directory must be below /run" >&2
+		exit 1
+		;;
+esac
+
+runtime_parent=$(dirname "${runtime_file}")
+marker=${runtime_parent}/.systemd-encrypted-credentials
+if [ ! -f "${marker}" ] || [ -L "${marker}" ]; then
+	exit 0
+fi
+if [ "$(stat -c %U:%G:%a "${marker}")" != root:root:600 ]; then
+	echo "witness encrypted-credential marker is unsafe" >&2
+	exit 1
+fi
+
+rm -f "${runtime_file}" "${tls_directory}/tls.crt" "${tls_directory}/tls.key" "${marker}"
+rmdir "${tls_directory}" 2>/dev/null || true
+rmdir "${runtime_parent}" 2>/dev/null || true

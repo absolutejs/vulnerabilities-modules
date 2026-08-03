@@ -45,6 +45,9 @@ jobs:
           bun run --filter @absolutejs/vulnerabilities-witness check:package
           git diff --exit-code
 
+      - name: Verify encrypted runtime credential materialization
+        run: sudo bash witness/tests/witness-runtime-materialization.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
@@ -118,6 +121,9 @@ jobs:
         run: |
           bun run --filter @absolutejs/vulnerabilities-witness check:package
           git diff --exit-code
+
+      - name: Verify encrypted runtime credential materialization
+        run: sudo bash witness/tests/witness-runtime-materialization.sh
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0

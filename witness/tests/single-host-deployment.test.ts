@@ -16,6 +16,18 @@ const service = await Bun.file(
 const secretsInitializer = await Bun.file(
   new URL("deploy/single-host/absolutejs-evidence-witness-secrets-init", root),
 ).text();
+const runtimeMaterializer = await Bun.file(
+  new URL(
+    "deploy/single-host/absolutejs-evidence-witness-runtime-materialize",
+    root,
+  ),
+).text();
+const runtimeCleanup = await Bun.file(
+  new URL(
+    "deploy/single-host/absolutejs-evidence-witness-runtime-cleanup",
+    root,
+  ),
+).text();
 const guide = await Bun.file(
   new URL("deploy/single-host/README.md", root),
 ).text();
@@ -88,5 +100,28 @@ describe("single-host witness deployment", () => {
     expect(guide).toMatch(/disappears at\s+reboot/u);
     expect(guide).toContain("production secret manager");
     expect(guide).toMatch(/Public\s+launch requires a publicly trusted/u);
+  });
+
+  test("supports host-bound encrypted reboot materialization without making it mandatory", () => {
+    expect(service).toContain("ImportCredential=absolutejs.witness.*");
+    expect(service).toContain(
+      "absolutejs-evidence-witness-runtime-materialize %d",
+    );
+    expect(service.indexOf("runtime-materialize")).toBeLessThan(
+      service.indexOf("absolutejs-evidence-witness-preflight"),
+    );
+    expect(service).toContain("absolutejs-evidence-witness-runtime-cleanup");
+    expect(runtimeMaterializer).toContain(
+      "witness encrypted credential set is incomplete",
+    );
+    expect(runtimeMaterializer).toContain('[ "${present}" -eq 0 ]');
+    expect(runtimeMaterializer).toContain("must not be symbolic links");
+    expect(runtimeMaterializer).toContain("install -o 0 -g 0 -m 0600");
+    expect(runtimeMaterializer).toContain("install -o 65532 -g 65532 -m 0400");
+    expect(runtimeCleanup).toContain(".systemd-encrypted-credentials");
+    expect(guide).toContain("systemd-creds encrypt --with-key=host");
+    expect(guide).toContain(
+      "does not protect against that host's root operator",
+    );
   });
 });

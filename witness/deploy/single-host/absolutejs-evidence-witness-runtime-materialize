@@ -1,0 +1,69 @@
+#!/bin/sh
+set -eu
+
+credentials_directory=${1:-}
+runtime_file=${2:-}
+tls_directory=${3:-}
+runtime_credential=${credentials_directory}/absolutejs.witness.runtime.env
+certificate_credential=${credentials_directory}/absolutejs.witness.tls.crt
+key_credential=${credentials_directory}/absolutejs.witness.tls.key
+
+present=0
+for credential in "${runtime_credential}" "${certificate_credential}" "${key_credential}"; do
+	if [ -e "${credential}" ] || [ -L "${credential}" ]; then
+		present=$((present + 1))
+	fi
+done
+
+# An external secret manager may already populate /run. Preserve that supported
+# mode when no encrypted systemd credential set was supplied.
+if [ "${present}" -eq 0 ]; then
+	exit 0
+fi
+if [ "${present}" -ne 3 ]; then
+	echo "witness encrypted credential set is incomplete" >&2
+	exit 1
+fi
+for credential in "${runtime_credential}" "${certificate_credential}" "${key_credential}"; do
+	if [ -L "${credential}" ] || [ ! -f "${credential}" ]; then
+		echo "witness encrypted credentials must materialize as regular files" >&2
+		exit 1
+	fi
+done
+
+case "${runtime_file}" in
+	/run/*) ;;
+	*)
+		echo "witness runtime environment must be below /run" >&2
+		exit 1
+		;;
+esac
+case "${tls_directory}" in
+	/run/*) ;;
+	*)
+		echo "witness TLS directory must be below /run" >&2
+		exit 1
+		;;
+esac
+
+runtime_parent=$(dirname "${runtime_file}")
+tls_parent=$(dirname "${tls_directory}")
+for path in "${runtime_parent}" "${tls_parent}" "${tls_directory}"; do
+	if [ -L "${path}" ]; then
+		echo "witness runtime paths must not be symbolic links" >&2
+		exit 1
+	fi
+done
+
+install -d -o 0 -g 0 -m 0711 "${runtime_parent}" "${tls_parent}" "${tls_directory}"
+staging_directory=$(mktemp -d "${runtime_parent}/.materialize.XXXXXX")
+trap 'rm -rf "${staging_directory}"' EXIT HUP INT TERM
+
+install -o 0 -g 0 -m 0600 "${runtime_credential}" "${staging_directory}/witness.env"
+install -o 0 -g 0 -m 0644 "${certificate_credential}" "${staging_directory}/tls.crt"
+install -o 65532 -g 65532 -m 0400 "${key_credential}" "${staging_directory}/tls.key"
+
+mv -f "${staging_directory}/witness.env" "${runtime_file}"
+mv -f "${staging_directory}/tls.crt" "${tls_directory}/tls.crt"
+mv -f "${staging_directory}/tls.key" "${tls_directory}/tls.key"
+install -o 0 -g 0 -m 0600 /dev/null "${runtime_parent}/.systemd-encrypted-credentials"

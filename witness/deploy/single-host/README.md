@@ -35,6 +35,10 @@ install -D -m 0755 absolutejs-evidence-witness-firewall \
   /usr/local/sbin/absolutejs-evidence-witness-firewall
 install -D -m 0755 absolutejs-evidence-witness-preflight \
   /usr/local/sbin/absolutejs-evidence-witness-preflight
+install -D -m 0755 absolutejs-evidence-witness-runtime-materialize \
+  /usr/local/sbin/absolutejs-evidence-witness-runtime-materialize
+install -D -m 0755 absolutejs-evidence-witness-runtime-cleanup \
+  /usr/local/sbin/absolutejs-evidence-witness-runtime-cleanup
 install -D -m 0644 absolutejs-evidence-witness.service \
   /etc/systemd/system/absolutejs-evidence-witness.service
 systemctl daemon-reload
@@ -73,3 +77,44 @@ After the provider secret manager has written the runtime file, start with
 pin the genesis key through an independent channel, then run the PAAS live
 quorum drill. A host reboot deliberately leaves this service stopped until the
 secret manager reinjects the runtime file.
+
+### Host-bound encrypted reboot recovery
+
+On a host with systemd 254 or newer, the unit can instead import three
+encrypted credentials and atomically recreate the runtime files before its
+ordinary preflight. This mode remains optional so an external provider secret
+manager can continue to populate `/run` directly.
+
+Create the host key once, then encrypt each already-prepared runtime input on
+the witness host. Use the exact credential names because systemd authenticates
+each name as part of its encrypted envelope:
+
+```sh
+systemd-creds setup
+install -d -o 0 -g 0 -m 0700 /etc/credstore.encrypted
+systemd-creds encrypt --with-key=host \
+  --name=absolutejs.witness.runtime.env \
+  /run/absolutejs-evidence-witness/witness.env \
+  /etc/credstore.encrypted/absolutejs.witness.runtime.env
+systemd-creds encrypt --with-key=host \
+  --name=absolutejs.witness.tls.crt \
+  /run/absolutejs-evidence-witness/tls/tls.crt \
+  /etc/credstore.encrypted/absolutejs.witness.tls.crt
+systemd-creds encrypt --with-key=host \
+  --name=absolutejs.witness.tls.key \
+  /run/absolutejs-evidence-witness/tls/tls.key \
+  /etc/credstore.encrypted/absolutejs.witness.tls.key
+```
+
+After all three encrypted files exist, enable the service. A complete set is
+materialized below `/run` before preflight and removed when the service stops;
+a missing member fails closed. The ciphertext is bound to that host and cannot
+be reused to unlock the other quorum member.
+
+Without a TPM or provider workload identity, host-key encryption protects
+credentials from plaintext persistence and from an encrypted blob copied away
+without the host key. It does not protect against that host's root operator or
+a full disk snapshot containing the systemd host key. A TPM-backed credential
+or provider-native workload identity is stronger where available. This mode
+must therefore use a different host key, administrative account, SSH identity,
+and encrypted credential set for every quorum member.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 - 2026-08-03
+
+- Add optional systemd host-bound encrypted credentials that atomically
+  recreate runtime-only witness and TLS files after reboot, fail closed on a
+  partial credential set, and remove materialized plaintext after shutdown.
+- Document the non-TPM residual risk and require independent host keys and
+  credential sets across quorum members.
+
 ## 0.4.8 - 2026-08-03
 
 - Safely migrate an existing encrypted witness-state file from the legacy host
