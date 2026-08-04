@@ -53,6 +53,7 @@ services:
   witness:
     image: ${EVIDENCE_WITNESS_IMAGE:?immutable witness image is required}
     pull_policy: never
+    init: true
     restart: unless-stopped
     user: "65532:65532"
     env_file: ${WITNESS_RUNTIME_ENV_FILE:?runtime secret file is required}

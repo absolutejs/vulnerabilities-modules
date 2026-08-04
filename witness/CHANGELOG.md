@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.6 - 2026-08-04
+
+- Run the long-lived witness behind Docker's minimal init process so recurring
+  TLS health checks cannot accumulate unreaped helper processes and exhaust the
+  container PID limit.
+
 ## 0.7.5 - 2026-08-03
 
 - Require a comma-separated allowlist of exact publicly routable IPv4 `/32`

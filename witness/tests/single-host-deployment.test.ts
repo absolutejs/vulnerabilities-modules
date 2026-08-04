@@ -65,6 +65,7 @@ const postgresService = compose.slice(
   compose.indexOf("  postgres:"),
   compose.indexOf("  witness-secrets-init:"),
 );
+const witnessService = compose.slice(compose.indexOf("  witness:\n"));
 
 const runFirewallWithMockIptables = async (cidrs: string) => {
   const directory = await mkdtemp(join(tmpdir(), "witness-firewall-"));
@@ -191,6 +192,13 @@ describe("single-host witness deployment", () => {
     expect(compose).toContain("- --no-check-certificate");
     expect(compose).toContain("- https://127.0.0.1:3443/health");
     expect(compose).not.toContain("NODE_TLS_REJECT_UNAUTHORIZED");
+  });
+
+  test("reaps child processes created by recurring TLS health checks", () => {
+    expect(witnessService).toContain("    init: true\n");
+    expect(witnessService.indexOf("    init: true\n")).toBeLessThan(
+      witnessService.indexOf("    healthcheck:\n"),
+    );
   });
 
   test("fails closed without a root-only runtime secret file", () => {
