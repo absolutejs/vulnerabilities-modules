@@ -13,7 +13,7 @@ const packageContract = (await Bun.file(
 describe("Secrets dependency ownership", () => {
   test("consumes the peer-safe Secrets line without bundling it", () => {
     expect(packageContract.dependencies?.["@absolutejs/secrets"]).toBe(
-      "^0.9.6",
+      "^0.9.7",
     );
     expect(packageContract.devDependencies?.["@absolutejs/agency"]).toBe(
       "0.7.3",

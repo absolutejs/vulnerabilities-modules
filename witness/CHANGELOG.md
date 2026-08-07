@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.7 - 2026-08-07
+
+- Uses Secrets 0.9.7 so witness operations share the Telemetry 0.3 runtime.
+
 ## 0.7.6 - 2026-08-04
 
 - Run the long-lived witness behind Docker's minimal init process so recurring

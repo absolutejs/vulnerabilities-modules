@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 - 2026-08-07
+
+- Uses Queue 0.7.2 so worker jobs share the Telemetry 0.3 runtime.
+
 ## 0.2.1 - 2026-07-18
 
 - Allow each live inventory snapshot to rebuild inventory-aware feed adapters
