@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.6 - 2026-08-17
+
+- Widen the supported `@absolutejs/vulnerabilities` range to include 0.15 and
+  test against it, so the core and its adapters resolve to a single copy.
+- Move the pinned adapters to their widened releases.
+
 ## 0.2.1 - 2026-07-18
 
 - Allow each live inventory snapshot to rebuild inventory-aware feed adapters

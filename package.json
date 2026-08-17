@@ -18,5 +18,8 @@
   "devDependencies": {
     "@absolutejs/attest": "0.1.3",
     "prettier": "3.8.1"
+  },
+  "dependencies": {
+    "@absolutejs/vulnerabilities-postgres": "^0.9.4"
   }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.8 - 2026-08-17
+
+- Move to `@absolutejs/vulnerabilities` 0.15.0 so the witness and the control
+  plane resolve a single copy of the core contracts.
+
 ## 0.7.6 - 2026-08-04
 
 - Run the long-lived witness behind Docker's minimal init process so recurring
