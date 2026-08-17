@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7 - 2026-08-17
+
+- Restore `@absolutejs/queue` to 0.7.2, which 0.2.6 rolled back and which kept
+  a second Telemetry runtime resolvable.
+
 ## 0.2.6 - 2026-08-17
 
 - Widen the supported `@absolutejs/vulnerabilities` range to include 0.15 and

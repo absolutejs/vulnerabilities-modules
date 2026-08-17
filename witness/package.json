@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-witness",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "Independent durable transparency witness with rollback, equivocation, key-rotation, and HTTP service primitives for AbsoluteJS vulnerability evidence.",
   "type": "module",
   "license": "BSL-1.1",
@@ -65,7 +65,7 @@
   ],
   "dependencies": {
     "@absolutejs/manifest": "0.7.2",
-    "@absolutejs/secrets": "^0.9.6",
+    "@absolutejs/secrets": "^0.9.7",
     "@absolutejs/vulnerabilities": "0.15.0",
     "@sinclair/typebox": "0.34.52"
   },

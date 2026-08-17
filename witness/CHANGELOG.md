@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.9 - 2026-08-17
+
+- Restore the `@absolutejs/secrets` range to `^0.9.7`, which 0.7.8 rolled back.
+
 ## 0.7.8 - 2026-08-17
 
 - Move to `@absolutejs/vulnerabilities` 0.15.0 so the witness and the control

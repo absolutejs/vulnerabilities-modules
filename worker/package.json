@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-worker",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Continuous feed refresh, inventory correlation, VEX, risk, remediation, leases, health, and metrics for AbsoluteJS vulnerability management.",
   "type": "module",
   "license": "BSL-1.1",
@@ -78,7 +78,7 @@
   ],
   "dependencies": {
     "@absolutejs/manifest": "0.7.2",
-    "@absolutejs/queue": "0.7.1",
+    "@absolutejs/queue": "0.7.2",
     "@absolutejs/vulnerabilities-epss": "0.1.7",
     "@absolutejs/vulnerabilities-kev": "0.1.7",
     "@absolutejs/vulnerabilities-osv": "0.1.9",
