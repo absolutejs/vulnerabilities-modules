@@ -40,7 +40,7 @@
           "@absolutejs/vulnerabilities-postgres/*"
         ],
         "range": ">=0.9.1 <0.10",
-        "tested": "0.9.3"
+        "tested": "0.9.4"
       }
     }
   },

@@ -11,23 +11,23 @@ includes a SHA-256 digest over the canonical report payload.
 
 ```ts
 import {
-	createVulnerabilitySecurityReport,
-	renderVulnerabilitySecurityReportHtml
-} from '@absolutejs/vulnerabilities-report';
+  createVulnerabilitySecurityReport,
+  renderVulnerabilitySecurityReportHtml,
+} from "@absolutejs/vulnerabilities-report";
 
 const report = createVulnerabilitySecurityReport({
-	generatedAt: new Date().toISOString(),
-	issues,
-	preparedBy: 'Security Operations',
-	preparedFor: 'Client',
-	reportId: 'security-report-2026-07',
-	scope: 'Production web and host vulnerability posture',
-	source: {
-		assessedAt: '2026-07-17T20:59:48.000Z',
-		name: 'External vulnerability scan',
-		reference: 'scan-13747781'
-	},
-	title: 'Security Remediation Response'
+  generatedAt: new Date().toISOString(),
+  issues,
+  preparedBy: "Security Operations",
+  preparedFor: "Client",
+  reportId: "security-report-2026-07",
+  scope: "Production web and host vulnerability posture",
+  source: {
+    assessedAt: "2026-07-17T20:59:48.000Z",
+    name: "External vulnerability scan",
+    reference: "scan-13747781",
+  },
+  title: "Security Remediation Response",
 });
 
 const html = renderVulnerabilitySecurityReportHtml(report);
