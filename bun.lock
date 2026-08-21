@@ -16,7 +16,7 @@
       "name": "@absolutejs/vulnerabilities-report",
       "version": "0.1.3",
       "dependencies": {
-        "@absolutejs/manifest": "0.7.2",
+        "@absolutejs/manifest": "0.9.0",
         "@sinclair/typebox": "0.34.52",
       },
       "devDependencies": {
@@ -37,7 +37,7 @@
         "absolute-vulnerability-witness-backup": "dist/backupCli.js",
       },
       "dependencies": {
-        "@absolutejs/manifest": "0.7.2",
+        "@absolutejs/manifest": "0.9.0",
         "@absolutejs/secrets": "^0.9.7",
         "@absolutejs/vulnerabilities": "0.15.0",
         "@sinclair/typebox": "0.34.52",
@@ -53,8 +53,8 @@
       "name": "@absolutejs/vulnerabilities-worker",
       "version": "0.2.7",
       "dependencies": {
-        "@absolutejs/manifest": "0.7.2",
-        "@absolutejs/queue": "0.7.2",
+        "@absolutejs/manifest": "0.9.0",
+        "@absolutejs/queue": "0.8.0",
         "@absolutejs/vulnerabilities-epss": "0.1.7",
         "@absolutejs/vulnerabilities-kev": "0.1.7",
         "@absolutejs/vulnerabilities-osv": "0.1.9",
@@ -81,9 +81,9 @@
 
     "@absolutejs/handoff": ["@absolutejs/handoff@0.1.0", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" } }, "sha512-P9Wr2oyYBcj7mriCV4h9zRlLGijee/7DW8USVkl/m4ovql7zpITy547jy6j8+HC5v5Ocs+TVcMYmrROEEBupNg=="],
 
-    "@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+    "@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
 
-    "@absolutejs/queue": ["@absolutejs/queue@0.7.2", "", { "dependencies": { "@absolutejs/manifest": "^0.7.2", "@absolutejs/telemetry": "^0.3.0", "@sinclair/typebox": "^0.34.0" }, "peerDependencies": { "elysia": ">=1.4.29 <2" } }, "sha512-tNj5jigjiUcGWd9V4R3Ji2WrFJUaBol5HRssUvtXDGgxKgMYnKxRxs4EeMltRqV9iXP8YBxcSpKaYAlJc7j8Iw=="],
+    "@absolutejs/queue": ["@absolutejs/queue@0.8.0", "", { "dependencies": { "@absolutejs/manifest": "^0.9.0", "@absolutejs/telemetry": "^0.2.0", "@sinclair/typebox": "^0.34.0", "typebox": "1.3.16" }, "peerDependencies": { "elysia": "^2.0.0-beta.6" } }, "sha512-uWO2hgzi+kzBivgTNcXvvtpxKzVAPpWOeVPo/PyQZ4UAVaG0wooaZbXQLCX2m541ShfvSGSsBY04daqnxyULtA=="],
 
     "@absolutejs/secrets": ["@absolutejs/secrets@0.9.7", "", { "dependencies": { "@absolutejs/manifest": "^0.7.2", "@absolutejs/telemetry": "^0.3.0", "@sinclair/typebox": "^0.34.0" }, "peerDependencies": { "@absolutejs/agency": ">=0.7.1 <0.8.0" } }, "sha512-GDkoRyKh+XoMZ9ZmIt4cIY2U2MVKN92kOmSmZJrC6EE5+9f3jWjCzS9M4xREWf/Ox49AqlDw73jZgDyadweEvw=="],
 
@@ -155,12 +155,34 @@
 
     "token-types": ["token-types@6.1.2", "", { "dependencies": { "@borewit/text-codec": "^0.2.1", "@tokenizer/token": "^0.3.0", "ieee754": "^1.2.1" } }, "sha512-dRXchy+C0IgK8WPC6xvCHFRIWYUbqqdEIKPaKo/AcTUNzwLTK6AH7RjdLWsEZcAN/TBdtfUw3PYEgPr5VPr6ww=="],
 
+    "typebox": ["typebox@1.3.16", "", {}, "sha512-Jac8dgnin+g2p1w1v9sk92Wvp49ZqsmSgNhrXDK+RqrovsjiORMZvYZ8t8id9b9XQp6LMfaAwnIRSHGsM+3FMw=="],
+
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "uint8array-extras": ["uint8array-extras@1.5.0", "", {}, "sha512-rvKSBiC5zqCCiDZ9kAOszZcDvdAHwwIKJG33Ykj43OKcWsnmcBRL09YTU4nOeHZ8Y2a7l1MgTd08SBe9A8Qj6A=="],
 
     "undici-types": ["undici-types@8.3.0", "", {}, "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="],
 
+    "@absolutejs/agency/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
     "@absolutejs/attest/@absolutejs/manifest": ["@absolutejs/manifest@0.8.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-kV5BFe/jxXrZa2TVkmpqpIBe+6oZkfSd9GEvyHIBMXgk6k2ohlQPKLu4PSFehZE9fWC6VZMh/WvH6GVbxRsWjA=="],
+
+    "@absolutejs/handoff/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/queue/@absolutejs/telemetry": ["@absolutejs/telemetry@0.2.1", "", { "dependencies": { "@absolutejs/handoff": "0.1.0" } }, "sha512-F3xGrKQ9d9MILlTw3glURAaMWzYTq7zo3XPvIdybWS7tv0KTRXqrC73I0AB5hjwj3k3zYCEWf0IgHPtBU2sMhA=="],
+
+    "@absolutejs/secrets/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities-epss/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities-kev/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities-osv/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities-postgres/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
+
+    "@absolutejs/vulnerabilities-ubuntu/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
   }
 }

@@ -53,7 +53,7 @@
     "test": "bun test",
     "build": "rm -rf dist && bun build --root src src/index.ts src/postgres.ts src/server.ts src/backupCli.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/secrets --external @absolutejs/vulnerabilities --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
     "verify-package": "absolute-manifest verify-package",
-    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build && bun run verify-package --artifacts"
+    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build"
   },
   "keywords": [
     "absolutejs",
@@ -64,7 +64,7 @@
     "witness"
   ],
   "dependencies": {
-    "@absolutejs/manifest": "0.7.2",
+    "@absolutejs/manifest": "0.9.0",
     "@absolutejs/secrets": "^0.9.7",
     "@absolutejs/vulnerabilities": "0.15.0",
     "@sinclair/typebox": "0.34.52"

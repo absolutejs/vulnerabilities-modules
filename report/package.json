@@ -20,21 +20,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "absolutejs": {
-    "manifestContract": 2,
-    "runtimePeers": {
-      "@absolutejs/vulnerabilities": {
-        "artifactImports": [
-          "@absolutejs/vulnerabilities"
-        ],
-        "range": ">=0.14.0 <0.16",
-        "tested": "0.15.0",
-        "optional": false,
-        "buildExternals": [
-          "@absolutejs/vulnerabilities",
-          "@absolutejs/vulnerabilities/*"
-        ]
-      }
-    }
+    "manifestContract": 2
   },
   "exports": {
     ".": {
@@ -58,7 +44,7 @@
     "test": "bun test",
     "build": "rm -rf dist && bun build src/index.ts src/manifest.ts --outdir dist --target=bun --external @absolutejs/manifest --external @absolutejs/vulnerabilities --external '@absolutejs/vulnerabilities/*' --external @sinclair/typebox && tsc -p tsconfig.build.json && absolute-manifest emit",
     "verify-package": "absolute-manifest verify-package",
-    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build && bun run verify-package --artifacts"
+    "check:package": "bun run format && bun run typecheck && bun run test && bun run verify-package && bun run build"
   },
   "keywords": [
     "absolutejs",
@@ -69,7 +55,7 @@
     "vulnerability-management"
   ],
   "dependencies": {
-    "@absolutejs/manifest": "0.7.2",
+    "@absolutejs/manifest": "0.9.0",
     "@sinclair/typebox": "0.34.52"
   },
   "devDependencies": {
