@@ -31,7 +31,7 @@
     },
     "witness": {
       "name": "@absolutejs/vulnerabilities-witness",
-      "version": "0.7.9",
+      "version": "0.7.10",
       "bin": {
         "absolute-vulnerability-witness": "dist/server.js",
         "absolute-vulnerability-witness-backup": "dist/backupCli.js",
@@ -39,7 +39,7 @@
       "dependencies": {
         "@absolutejs/manifest": "0.9.0",
         "@absolutejs/secrets": "^0.9.7",
-        "@absolutejs/vulnerabilities": "0.15.0",
+        "@absolutejs/vulnerabilities": ">=0.15.0 <0.16",
         "@sinclair/typebox": "0.34.52",
       },
       "devDependencies": {

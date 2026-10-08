@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.10 - 2026-10-08
+
+- Take `@absolutejs/vulnerabilities` as a `>=0.15.0 <0.16` range instead of an
+  exact pin, so a core patch (0.15.1) resolves to the same single copy as the
+  control plane instead of forking a second one.
+
 ## 0.7.9 - 2026-08-17
 
 - Restore the `@absolutejs/secrets` range to `^0.9.7`, which 0.7.8 rolled back.
