@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.10 - 2026-11-17
+
+- Take `@absolutejs/vulnerabilities-osv` 0.1.10, which retries a transient
+  OSV answer (429, 5xx) or a dropped connection instead of failing the
+  whole hourly refresh on one advisory.
+
 ## 0.2.7 - 2026-08-17
 
 - Restore `@absolutejs/queue` to 0.7.2, which 0.2.6 rolled back and which kept
