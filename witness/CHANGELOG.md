@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.11 - 2026-11-22
+
+- Support the 0.16 security substrate and update the standalone witness lockfile.
+- Build with Bun 1.4.4 and run on a digest-pinned Wolfi base. The image retains the non-root runtime and HTTPS health check.
+
 ## 0.7.10 - 2026-10-08
 
 - Take `@absolutejs/vulnerabilities` as a `>=0.15.0 <0.16` range instead of an
