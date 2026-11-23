@@ -104,7 +104,7 @@ read_setting() {
 
 runtime_file=$(read_setting WITNESS_RUNTIME_ENV_FILE)
 witness_image=$(read_setting EVIDENCE_WITNESS_IMAGE)
-postgres_image_lines=$(grep -E '^    image: postgres@sha256:[a-f0-9]{64}$' "${compose_file}" || true)
+postgres_image_lines=$(grep -E '^    image: (cgr[.]dev/chainguard/)?postgres@sha256:[a-f0-9]{64}$' "${compose_file}" || true)
 if [[ $(printf '%s\n' "${postgres_image_lines}" | grep -c '^') != 1 || -z ${postgres_image_lines} ]]; then
 	echo "witness PostgreSQL image is missing or duplicated" >&2
 	exit 1
@@ -128,7 +128,7 @@ docker volume create "${volume}" >/dev/null
 docker run --detach --name "${postgres_container}" --pull never \
 	--network "${network}" --network-alias postgres \
 	--env-file "${runtime_file}" \
-	--mount "type=volume,source=${volume},target=/var/lib/postgresql" \
+	--env PGDATA=/var/lib/postgresql/18/docker --mount "type=volume,source=${volume},target=/var/lib/postgresql" \
 	"${postgres_image}" >/dev/null
 
 for _ in {1..30}; do

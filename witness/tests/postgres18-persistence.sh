@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-image="postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15"
+image="cgr.dev/chainguard/postgres@sha256:9cc085289d7ef0174f35f2ff1e514624c3305c4a26215d8e89e3e277e3377d03"
 suffix="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}-$$"
 container="absolutejs-witness-postgres18-${suffix}"
 volume="absolutejs-witness-postgres18-${suffix}"
@@ -24,7 +24,7 @@ start_postgres() {
     --env POSTGRES_DB=witness_persistence_test \
     --env POSTGRES_USER=witness_test \
     --env POSTGRES_PASSWORD=synthetic-regression-only \
-    --mount "type=volume,source=${volume},target=/var/lib/postgresql" \
+    --env PGDATA=/var/lib/postgresql/18/docker --mount "type=volume,source=${volume},target=/var/lib/postgresql" \
     "$image" >/dev/null
 
   for _ in {1..30}; do

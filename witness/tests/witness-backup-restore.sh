@@ -8,7 +8,7 @@ fi
 
 candidate=${EVIDENCE_WITNESS_TEST_IMAGE:?candidate witness image is required}
 image=$(docker image inspect --format '{{.Id}}' "${candidate}")
-postgres_image=postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+postgres_image=cgr.dev/chainguard/postgres@sha256:9cc085289d7ef0174f35f2ff1e514624c3305c4a26215d8e89e3e277e3377d03
 suffix="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}-$$"
 root=$(mktemp -d /run/absolutejs-witness-backup-integration.XXXXXX)
 network="absolutejs-witness-backup-source-${suffix}"
@@ -48,7 +48,7 @@ docker run --rm --network none --user 0:0 \
 docker run --detach --name "${postgres_container}" --pull never \
 	--network "${network}" --network-alias postgres \
 	--env-file "${root}/witness.env" \
-	--mount "type=volume,source=${postgres_volume},target=/var/lib/postgresql" \
+	--env PGDATA=/var/lib/postgresql/18/docker --mount "type=volume,source=${postgres_volume},target=/var/lib/postgresql" \
 	"${postgres_image}" >/dev/null
 
 for _ in {1..30}; do

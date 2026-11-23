@@ -80,12 +80,14 @@ describe("Witness container supply chain", () => {
 
   test("scans the exact support image shipped by the host contract", () => {
     const [postgresReference] =
-      singleHostCompose.match(/postgres@sha256:[0-9a-f]{64}/u) ?? [];
+      singleHostCompose.match(
+        /cgr\.dev\/chainguard\/postgres@sha256:[0-9a-f]{64}/u,
+      ) ?? [];
 
     expect(postgresReference).toBeTruthy();
     expect(workflow).toContain(`image: ${postgresReference}`);
     expect(workflow).toContain("id: postgres_scan");
-    expect(workflow.match(/grype-version: v0\.116\.1/gu)).toHaveLength(2);
+    expect(workflow.match(/grype-version: v0\.116\.1/gu)).toHaveLength(3);
     expect(workflow).toContain("severity-cutoff: high");
     expect(workflow).toContain("evidence/postgres-grype.json");
     expect(workflow).toContain("if: always() && steps.scan.outputs.json != ''");
