@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-report",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Deterministic, evidence-backed, print-ready HTML reports for AbsoluteJS vulnerability management.",
   "type": "module",
   "license": "BSL-1.1",
@@ -59,12 +59,12 @@
     "@sinclair/typebox": "0.34.52"
   },
   "devDependencies": {
-    "@absolutejs/vulnerabilities": "0.15.0",
+    "@absolutejs/vulnerabilities": "0.16.0",
     "@types/bun": "1.3.14",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
   },
   "peerDependencies": {
-    "@absolutejs/vulnerabilities": ">=0.14.0 <0.16"
+    "@absolutejs/vulnerabilities": ">=0.14.0 <0.17"
   }
 }

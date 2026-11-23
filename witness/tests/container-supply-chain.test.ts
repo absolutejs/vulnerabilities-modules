@@ -124,12 +124,14 @@ describe("Witness container supply chain", () => {
   });
 
   test("uses the exact minimized Bun runtime selected by the vulnerability gate", () => {
-    expect(dockerfile).toContain("FROM oven/bun:1.3.14-alpine AS runtime");
+    expect(dockerfile).toContain(
+      "FROM cgr.dev/chainguard/wolfi-base@sha256:be019c1c74fe69204a42c4e10bc4d886a49bf5403ffa74374ef7baa408fc9a26 AS runtime",
+    );
     expect(dockerfile).toContain(
       'LABEL org.opencontainers.image.source="https://github.com/absolutejs/vulnerabilities-modules"',
     );
     expect(dockerfile).toContain("RUN apk upgrade --no-cache");
-    expect(dockerfile).not.toContain("FROM oven/bun:1.3.14-slim AS runtime");
+    expect(dockerfile).toContain("USER 1000:1000");
     expect(dockerfile).not.toMatch(/^FROM\s+[^\s]+:(?:latest|main)\b/mu);
     expect(workflow.match(/--user 65532:65532/gu)).toHaveLength(2);
     expect(workflow.match(/--network none/gu)).toHaveLength(2);

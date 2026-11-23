@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-worker",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Continuous feed refresh, inventory correlation, VEX, risk, remediation, leases, health, and metrics for AbsoluteJS vulnerability management.",
   "type": "module",
   "license": "BSL-1.1",
@@ -57,19 +57,19 @@
   "dependencies": {
     "@absolutejs/manifest": "0.9.0",
     "@absolutejs/queue": "0.8.1",
-    "@absolutejs/vulnerabilities-epss": "0.1.7",
-    "@absolutejs/vulnerabilities-kev": "0.1.7",
-    "@absolutejs/vulnerabilities-osv": "0.1.10",
-    "@absolutejs/vulnerabilities-ubuntu": "0.1.6",
+    "@absolutejs/vulnerabilities-epss": "0.1.8",
+    "@absolutejs/vulnerabilities-kev": "0.1.8",
+    "@absolutejs/vulnerabilities-osv": "0.1.11",
+    "@absolutejs/vulnerabilities-ubuntu": "0.1.7",
     "@sinclair/typebox": "0.34.52"
   },
   "peerDependencies": {
-    "@absolutejs/vulnerabilities": ">=0.14.0 <0.16",
+    "@absolutejs/vulnerabilities": ">=0.14.0 <0.17",
     "@absolutejs/vulnerabilities-postgres": ">=0.9.1 <0.10"
   },
   "devDependencies": {
-    "@absolutejs/vulnerabilities": "0.15.0",
-    "@absolutejs/vulnerabilities-postgres": "0.9.4",
+    "@absolutejs/vulnerabilities": "0.16.0",
+    "@absolutejs/vulnerabilities-postgres": "0.9.5",
     "@types/bun": "1.3.14",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
