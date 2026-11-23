@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/vulnerabilities-worker",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Continuous feed refresh, inventory correlation, VEX, risk, remediation, leases, health, and metrics for AbsoluteJS vulnerability management.",
   "type": "module",
   "license": "BSL-1.1",
@@ -57,10 +57,10 @@
   "dependencies": {
     "@absolutejs/manifest": "0.9.0",
     "@absolutejs/queue": "0.8.1",
-    "@absolutejs/vulnerabilities-epss": "0.1.8",
-    "@absolutejs/vulnerabilities-kev": "0.1.8",
-    "@absolutejs/vulnerabilities-osv": "0.1.11",
-    "@absolutejs/vulnerabilities-ubuntu": "0.1.7",
+    "@absolutejs/vulnerabilities-epss": "0.1.9",
+    "@absolutejs/vulnerabilities-kev": "0.1.9",
+    "@absolutejs/vulnerabilities-osv": "0.1.12",
+    "@absolutejs/vulnerabilities-ubuntu": "0.1.8",
     "@sinclair/typebox": "0.34.52"
   },
   "peerDependencies": {
@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@absolutejs/vulnerabilities": "0.17.1",
-    "@absolutejs/vulnerabilities-postgres": "0.9.5",
+    "@absolutejs/vulnerabilities-postgres": "0.9.6",
     "@types/bun": "1.3.14",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
