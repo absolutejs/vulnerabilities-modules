@@ -24,6 +24,15 @@ first start. Keep supplying the same runtime credential source after bootstrap:
 the passphrase remains necessary to decrypt rotations, while the stored signing
 state and token take precedence over their bootstrap values.
 
+## PostgreSQL 18 image upgrades
+
+The pinned PostgreSQL 18.7 image uses the existing data directory at
+`/var/lib/postgresql/18/docker`. When moving an existing Alpine-based
+installation to this image, restore a verified logical backup into a fresh
+volume. The images use different system locale libraries. A logical restore
+rebuilds indexes with the destination collation. Keep the previous volume
+and image until the restored witness passes its integrity and health checks.
+
 ## Host installation
 
 Install Docker Engine with its Compose plugin from the provider-supported

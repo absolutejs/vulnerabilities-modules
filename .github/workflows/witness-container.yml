@@ -82,6 +82,11 @@ jobs:
           EVIDENCE_WITNESS_TEST_IMAGE: local/absolutejs-vulnerabilities-witness:${{ github.sha }}
         run: bash witness/tests/witness-secret-ownership-migration.sh
 
+      - name: Verify disposable encrypted-state and database restore
+        env:
+          EVIDENCE_WITNESS_TEST_IMAGE: local/absolutejs-vulnerabilities-witness:${{ github.sha }}
+        run: sudo --preserve-env=PATH,EVIDENCE_WITNESS_TEST_IMAGE bash witness/tests/witness-backup-restore.sh
+
       - name: Prepare the evidence directory
         run: mkdir -p evidence
 
@@ -98,6 +103,15 @@ jobs:
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: local/absolutejs-vulnerabilities-witness:${{ github.sha }}
+          fail-build: true
+          output-format: json
+          severity-cutoff: high
+
+      - name: Fail on high or critical PostgreSQL support-image vulnerabilities
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
+        with:
+          image: cgr.dev/chainguard/postgres@sha256:9cc085289d7ef0174f35f2ff1e514624c3305c4a26215d8e89e3e277e3377d03
+          grype-version: v0.116.1
           fail-build: true
           output-format: json
           severity-cutoff: high
@@ -196,7 +210,7 @@ jobs:
         id: postgres_scan
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
-          image: postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+          image: cgr.dev/chainguard/postgres@sha256:9cc085289d7ef0174f35f2ff1e514624c3305c4a26215d8e89e3e277e3377d03
           grype-version: v0.116.1
           fail-build: true
           output-format: json
