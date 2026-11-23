@@ -51,19 +51,19 @@
     },
     "worker": {
       "name": "@absolutejs/vulnerabilities-worker",
-      "version": "0.2.12",
+      "version": "0.2.13",
       "dependencies": {
         "@absolutejs/manifest": "0.9.0",
         "@absolutejs/queue": "0.8.1",
-        "@absolutejs/vulnerabilities-epss": "0.1.8",
-        "@absolutejs/vulnerabilities-kev": "0.1.8",
-        "@absolutejs/vulnerabilities-osv": "0.1.11",
-        "@absolutejs/vulnerabilities-ubuntu": "0.1.7",
+        "@absolutejs/vulnerabilities-epss": "0.1.9",
+        "@absolutejs/vulnerabilities-kev": "0.1.9",
+        "@absolutejs/vulnerabilities-osv": "0.1.12",
+        "@absolutejs/vulnerabilities-ubuntu": "0.1.8",
         "@sinclair/typebox": "0.34.52",
       },
       "devDependencies": {
         "@absolutejs/vulnerabilities": "0.17.1",
-        "@absolutejs/vulnerabilities-postgres": "0.9.5",
+        "@absolutejs/vulnerabilities-postgres": "0.9.6",
         "@types/bun": "1.3.14",
         "prettier": "3.8.1",
         "typescript": "5.9.3",
@@ -91,17 +91,17 @@
 
     "@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.17.1", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-wDBpu7bY9Y0/P89mA+hlXPYjP9hJTHRMBxGgP45f5C31dgB3iBpDmmu1iTPG/Za4aoYsjXGH7eYFQVrTCRE7IA=="],
 
-    "@absolutejs/vulnerabilities-epss": ["@absolutejs/vulnerabilities-epss@0.1.8", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.17" } }, "sha512-evau2scnvYl9DI6v5y7ELkh3x4wf4jgn3nOvuWA61sMgLOJoy6HDTmV0iWq4OYKYMrGu9FiPn6Mvav50n6QvZw=="],
+    "@absolutejs/vulnerabilities-epss": ["@absolutejs/vulnerabilities-epss@0.1.9", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.18" } }, "sha512-nrPNdNcmjxTeax/3QSSigzuyfJSE3ecRvT/ufgnh2IIS9nfhcmyw0I1MVlHaJYEbTIi7lS53t4CAs5qojvqLyQ=="],
 
-    "@absolutejs/vulnerabilities-kev": ["@absolutejs/vulnerabilities-kev@0.1.8", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.17" } }, "sha512-fCg/CpsqzAvXkDM2BCn1gwZJeyVlXO8172SUAyeSmp9EvGPaUGdeWNTRH4uLxMg38KRi3fFI+b8s0YDk2QWg8w=="],
+    "@absolutejs/vulnerabilities-kev": ["@absolutejs/vulnerabilities-kev@0.1.9", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.18" } }, "sha512-/OZBh460KmWH6bd7eVCPIP9tBnIGHQ10wlmda2rzPRS9O12+voUh95ZbJmZ5aUY4fxQuRdfTRknMbhZpUwju3g=="],
 
-    "@absolutejs/vulnerabilities-osv": ["@absolutejs/vulnerabilities-osv@0.1.11", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.17" } }, "sha512-ozawaTu1YjVd1pBsyDurF0nzU5+BYyhLE32rarAkujHDIJUHJRAAFZgGf5xoRHU7tJqCI9QNM6rY3dlq7ZuCgA=="],
+    "@absolutejs/vulnerabilities-osv": ["@absolutejs/vulnerabilities-osv@0.1.12", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.18" } }, "sha512-WVouHsnM1Haf4hR4IjUuAEvC6mswaU12O0SkcguaD8WCD9vkdlCjm7xYuFgVpGK2wjWb23szJAe2+cnqcrYo1Q=="],
 
-    "@absolutejs/vulnerabilities-postgres": ["@absolutejs/vulnerabilities-postgres@0.9.5", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.17", "drizzle-orm": ">=1.0.0-rc.4 <2" } }, "sha512-6GqWTJNrnOORUdoyeukNNPvygjJRPFEJJZHLlNa4mJnPpHDtGO/z5hHD1b8JZa///lqqygUOd4NEm9GI/trMiw=="],
+    "@absolutejs/vulnerabilities-postgres": ["@absolutejs/vulnerabilities-postgres@0.9.6", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.18", "drizzle-orm": ">=1.0.0-rc.4 <2" } }, "sha512-eMv4XVxR7/pg5DQ/nGYMVEnWWNymIpEmWQf4olB3OUQ6hy/VDBFYRmrF0wpxBE/ffMD2/T9GJfUKycMeB12NMg=="],
 
     "@absolutejs/vulnerabilities-report": ["@absolutejs/vulnerabilities-report@workspace:report"],
 
-    "@absolutejs/vulnerabilities-ubuntu": ["@absolutejs/vulnerabilities-ubuntu@0.1.7", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.17", "@absolutejs/vulnerabilities-osv": ">=0.1.8 <0.2.0" } }, "sha512-8iFKaJjxoLK0gcSHr96TXi85oYHj7XBQDILZrlGOkiYeswIyLTckduCJsmrXbbJ+aue/II8J2cCNmKfH0Ouy+w=="],
+    "@absolutejs/vulnerabilities-ubuntu": ["@absolutejs/vulnerabilities-ubuntu@0.1.8", "", { "dependencies": { "@absolutejs/manifest": "0.7.2", "@sinclair/typebox": "0.34.52" }, "peerDependencies": { "@absolutejs/vulnerabilities": ">=0.14.0 <0.18", "@absolutejs/vulnerabilities-osv": ">=0.1.8 <0.2.0" } }, "sha512-swtEdmxZeOBSczDuhKoTHIDnR2yZkkrn1molPxNUnAq9R9yqS1CKplFUiw59KGvLLrON/PKLKSKvkqp0AkBPlw=="],
 
     "@absolutejs/vulnerabilities-witness": ["@absolutejs/vulnerabilities-witness@workspace:witness"],
 
@@ -173,32 +173,12 @@
 
     "@absolutejs/vulnerabilities-epss/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
 
-    "@absolutejs/vulnerabilities-epss/@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.16.0", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-cxpAKu+PFga8dYisYOqJWAwkG6If/ruhz7Ox9j+Mq6yRl7qFltyXnbctxyXz4CPlFn01SPPIwlVj+zoolxW3fw=="],
-
     "@absolutejs/vulnerabilities-kev/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
-
-    "@absolutejs/vulnerabilities-kev/@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.16.0", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-cxpAKu+PFga8dYisYOqJWAwkG6If/ruhz7Ox9j+Mq6yRl7qFltyXnbctxyXz4CPlFn01SPPIwlVj+zoolxW3fw=="],
 
     "@absolutejs/vulnerabilities-osv/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
 
-    "@absolutejs/vulnerabilities-osv/@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.16.0", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-cxpAKu+PFga8dYisYOqJWAwkG6If/ruhz7Ox9j+Mq6yRl7qFltyXnbctxyXz4CPlFn01SPPIwlVj+zoolxW3fw=="],
-
     "@absolutejs/vulnerabilities-postgres/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
 
-    "@absolutejs/vulnerabilities-postgres/@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.16.0", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-cxpAKu+PFga8dYisYOqJWAwkG6If/ruhz7Ox9j+Mq6yRl7qFltyXnbctxyXz4CPlFn01SPPIwlVj+zoolxW3fw=="],
-
     "@absolutejs/vulnerabilities-ubuntu/@absolutejs/manifest": ["@absolutejs/manifest@0.7.2", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-NSVzC4yHbH+n+WCNdWYrpbc+3k5rOfO4X85Ku9VCP8teRaa2VEibp29Cyvg9rQARUGaQjGGTz+l+APqM0+odxg=="],
-
-    "@absolutejs/vulnerabilities-ubuntu/@absolutejs/vulnerabilities": ["@absolutejs/vulnerabilities@0.16.0", "", { "dependencies": { "@absolutejs/manifest": "0.9.0", "@renovatebot/pep440": "5.0.0", "@sinclair/typebox": "0.34.52", "packageurl-js": "2.0.1", "semver": "7.8.5" }, "bin": { "absolute-vulnerability-evidence": "dist/evidence-cli.js" } }, "sha512-cxpAKu+PFga8dYisYOqJWAwkG6If/ruhz7Ox9j+Mq6yRl7qFltyXnbctxyXz4CPlFn01SPPIwlVj+zoolxW3fw=="],
-
-    "@absolutejs/vulnerabilities-epss/@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
-
-    "@absolutejs/vulnerabilities-kev/@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
-
-    "@absolutejs/vulnerabilities-osv/@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
-
-    "@absolutejs/vulnerabilities-postgres/@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
-
-    "@absolutejs/vulnerabilities-ubuntu/@absolutejs/vulnerabilities/@absolutejs/manifest": ["@absolutejs/manifest@0.9.0", "", { "peerDependencies": { "@sinclair/typebox": ">=0.34.0 <0.35.0" }, "bin": { "absolute-manifest": "dist/cli.js" } }, "sha512-naNDdwNoWQgJ3HuFbAu1UcOVR7SGpLBJz/seO8MMX32vrxk6esgzY7OB1CL8YDOegtI/EqQfcvnulnP66A9aGg=="],
   }
 }
